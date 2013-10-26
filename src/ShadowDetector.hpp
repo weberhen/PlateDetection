@@ -3,10 +3,13 @@
 
 #include "MainShadowDetector.hpp"
 #include "opencv2/opencv.hpp"
+#include "MathFunctions.hpp"
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include <vector>
+#include <algorithm>
 using namespace std;
 using namespace cv;
 

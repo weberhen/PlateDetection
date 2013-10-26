@@ -34,6 +34,7 @@ FIND_PACKAGE(OpenCV REQUIRED)
 
 add_executable(ShadowDetector ${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
                         ${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
+                        ${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
                         )
 
 TARGET_LINK_LIBRARIES(ShadowDetector ${OpenCV_LIBS})
