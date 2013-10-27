@@ -4,6 +4,7 @@
 #include "MainShadowDetector.hpp"
 #include "opencv2/opencv.hpp"
 #include "MathFunctions.hpp"
+#include "ImageManipulation.hpp"
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,6 +24,6 @@ typedef struct asphaltInfo{
 Mat CannyThreshold(Mat src, int lowThreshold);
 Mat FreeDrivingSpace(Mat dst, Mat src,structAsphaltInfo *_structAsphaltInfo);
 structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray);
-
+void SearchForShadow(Mat src,int uBoundary);
 
 #endif

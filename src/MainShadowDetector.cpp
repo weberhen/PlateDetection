@@ -17,6 +17,8 @@ int main(int argc, char** argv)
 
 	structAsphaltInfo _structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
 	cout<<"Median is: "<<_structAsphaltInfo.median<<endl;
+	
+	SearchForShadow(src_gray,_structAsphaltInfo.median);
 
 	return 0;
 

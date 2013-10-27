@@ -79,3 +79,25 @@ structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
     }
 	return _structAsphaltInfo;
 }
+
+void SearchForShadow(Mat src,int uBoundary)
+{
+	Size smallSize(src.cols*0.3,src.rows*0.3);
+	Mat smallerImg = Mat::zeros( smallSize, src.type());
+	Mat dst = Mat::zeros(smallSize,src.type());
+	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
+	for(int i=smallerImg.rows-1;i>0;i--)
+		for(int j=0;j<smallerImg.cols;j++)
+		{
+			Point downNeighbor = NeighborPixel(Point(i,j),DOWN,smallerImg);
+			if((smallerImg.at<unsigned char>(i, j)<uBoundary*0.8)
+				&&(smallerImg.at<unsigned char>(downNeighbor.x, downNeighbor.y)>smallerImg.at<unsigned char>(i, j)))
+				dst.at<unsigned char>(i,j)=255;
+				
+		}
+	namedWindow("small", CV_WINDOW_AUTOSIZE);
+	imshow("small", dst);
+	waitKey();	
+}
+
+
