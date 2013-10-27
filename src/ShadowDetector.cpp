@@ -53,10 +53,6 @@ Mat FreeDrivingSpace(Mat dst, Mat src,structAsphaltInfo *_structAsphaltInfo)
 		}
 	}
 	std::vector<int> v(arrayMeanAsphaltColor, arrayMeanAsphaltColor + indexMAC);
-	//cout << "Mean: "<<Average(v)<<endl;
-	//cout << "SD: " << Deviation(v,Average(v)) <<endl;
-	//cout<< "% da imagem: "<< 100*indexMAC/(width*height) << endl;
-	//cout <<"Median: "<<v.at(v.size()/2)<<endl;
 	sort(v.begin(),v.end());
 
 	(*_structAsphaltInfo).sd=Deviation(v,Average(v));

@@ -15,7 +15,7 @@ double Deviation(vector<int> v, double ave)
 //AVERAGE
 double Average(vector<int> v)
 {      int sum=0;
-       for(int i=0;i<v.size();i++)
+       for(unsigned int i=0;i<v.size();i++)
                sum+=v[i];
        return sum/v.size();
 }
