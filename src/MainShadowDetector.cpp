@@ -3,6 +3,8 @@
 int main(int argc, char** argv)
 {
 	Mat dst, src_gray;
+	structAsphaltInfo _structAsphaltInfo;
+	_structAsphaltInfo.porcentageAsphalt=0;
 
 	Mat src = imread(argv[1]);
 	if(!src.data)
@@ -13,16 +15,9 @@ int main(int argc, char** argv)
 	cvtColor(src,src_gray,CV_BGR2GRAY);
 	//create a window
 	namedWindow("Canny", CV_WINDOW_AUTOSIZE);
-	//apply canny and return to src
-	for(int i=20;i<100;i+=20)
-	{
-		dst = CannyThreshold(src_gray, i);
-		imshow("Canny", dst);
-		waitKey(0);
-		src = FreeDrivingSpace(dst, src_gray);
-	        imshow("Result", src);
-		waitKey(0);
-	}
+
+	_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
+	cout<<"Median is: "<<_structAsphaltInfo.median<<endl;
 	return 0;
 
 }

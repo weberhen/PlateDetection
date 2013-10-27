@@ -13,7 +13,16 @@
 using namespace std;
 using namespace cv;
 
+typedef struct asphaltInfo{
+	int average;
+	int median;
+	int sd;
+	int porcentageAsphalt;
+} structAsphaltInfo;
+
 Mat CannyThreshold(Mat src, int lowThreshold);
-Mat FreeDrivingSpace(Mat dst, Mat src);
+Mat FreeDrivingSpace(Mat dst, Mat src,structAsphaltInfo *_structAsphaltInfo);
+structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray);
+
 
 #endif

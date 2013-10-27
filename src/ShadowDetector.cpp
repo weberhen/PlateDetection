@@ -27,17 +27,17 @@ Mat CannyThreshold(Mat src, int lowThreshold)
 * \param src original image from where the original pixel colors are taken from
 *
 */
-Mat FreeDrivingSpace(Mat dst, Mat src)
+Mat FreeDrivingSpace(Mat dst, Mat src,structAsphaltInfo *_structAsphaltInfo)
 {
 	int width = dst.cols;
 	int height = dst.rows;
 	Mat new_dst = Mat::zeros( dst.size(), dst.type() );
-	new_dst = Scalar::all(255);
+	new_dst = Scalar::all(-1);
 	int arrayMeanAsphaltColor[width*height];
 	int indexMAC = 0; //size of arrayMeanAsphaltColor;
 	for(int j=0.26*width; j<width-(0.26*width); j++)
 	{
-		for(int i=height-1; i>0; i-- )	
+		for(int i=height-1; i>0; i--)
 		{
 			if(dst.at<unsigned char>(i, j)!=0)
 			{
@@ -53,11 +53,33 @@ Mat FreeDrivingSpace(Mat dst, Mat src)
 		}
 	}
 	std::vector<int> v(arrayMeanAsphaltColor, arrayMeanAsphaltColor + indexMAC);
-	//cout<<"standard mean: "<<v.size()<<endl;
-	cout << "SD: " << Deviation(v,Average(v)) <<endl;
+	//cout << "Mean: "<<Average(v)<<endl;
+	//cout << "SD: " << Deviation(v,Average(v)) <<endl;
+	//cout<< "% da imagem: "<< 100*indexMAC/(width*height) << endl;
+	//cout <<"Median: "<<v.at(v.size()/2)<<endl;
 	sort(v.begin(),v.end());
-	cout <<"Median: "<<v.at(v.size()/2)<<endl;
-	cout << "Mean: "<<Average(v)<<endl;
-	cout << "% da imagem: "<< 100*indexMAC/(width*height) << endl;
+
+	(*_structAsphaltInfo).sd=Deviation(v,Average(v));
+	(*_structAsphaltInfo).median=v.at(v.size()/2);
+	(*_structAsphaltInfo).average=(int)Average(v);
+	(*_structAsphaltInfo).porcentageAsphalt=100*indexMAC/(width*height);
+
 	return new_dst;
+}
+
+structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
+{
+	structAsphaltInfo _structAsphaltInfo;
+	_structAsphaltInfo.porcentageAsphalt=0;
+	Mat dst;
+	int lowThreshold=20;
+ 	while(_structAsphaltInfo.porcentageAsphalt<20 && lowThreshold <= 100)
+    {
+        //apply canny to the original image
+        dst = CannyThreshold(src_gray, lowThreshold);
+        //search for the free driving space
+        FreeDrivingSpace(dst, src_gray, &_structAsphaltInfo);
+        lowThreshold+=20;
+    }
+	return _structAsphaltInfo;
 }
