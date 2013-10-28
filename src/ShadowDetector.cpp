@@ -82,12 +82,14 @@ structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
 
 void SearchForShadow(Mat src,int uBoundary)
 {
+	namedWindow("small", CV_WINDOW_AUTOSIZE);
 	Size smallSize(src.cols*0.3,src.rows*0.3);
 	int segmentSize=0;
 	Mat smallerImg = Mat::zeros( smallSize, src.type());
 	Mat dst = Mat::zeros(smallSize,src.type());
 	Mat shadows = Mat::zeros(smallSize,src.type());
 	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
+	resize(src, src, smallerImg.size(),0,0,INTER_CUBIC);
 	for(int i=smallerImg.rows-1;i>0;i--){
 		for(int j=0;j<smallerImg.cols;j++)
 		{
@@ -98,7 +100,8 @@ void SearchForShadow(Mat src,int uBoundary)
 				
 		}
 	}
-	
+	//imshow("small", src);
+	//waitKey();
 	for(int i=smallerImg.rows-2;i>1;i--){
 		for(int j=1;j<smallerImg.cols-1;j++)
 		{
@@ -118,7 +121,8 @@ void SearchForShadow(Mat src,int uBoundary)
 			}
 			else 
 			{
-				if(segmentSize<30)
+				if(segmentSize<(0.10*smallerImg.cols)||
+				  ((segmentSize>i*1.35) || (segmentSize<i*0.65)))
 				{
 					while(segmentSize>=0)
 					{
@@ -127,21 +131,29 @@ void SearchForShadow(Mat src,int uBoundary)
 					}
 				}
 				else
+				{
+					int height;
+					if(i-segmentSize<0)
+						height=0;
+					else
+						height=i-segmentSize;
+					rectangle(src,Point(j-segmentSize,height),Point(i,j),Scalar(100,100,100),2,CV_AA);
 					segmentSize=0;
+				}
 			}
 			if(j==smallerImg.cols-2)
 			{
 				while(segmentSize>=0)
 				{
-					shadows.at<unsigned char>(i,j-segmentSize-1)=0;
+					shadows.at<unsigned char>(i,j-segmentSize)=0;
 					segmentSize--;
 				}
 			}
 		}
 		segmentSize=0;
 	}
-	namedWindow("small", CV_WINDOW_AUTOSIZE);
-	imshow("small", shadows);
+	
+	imshow("small", src);
 	waitKey();	
 	
 }
