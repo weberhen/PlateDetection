@@ -83,10 +83,12 @@ structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
 void SearchForShadow(Mat src,int uBoundary)
 {
 	Size smallSize(src.cols*0.3,src.rows*0.3);
+	int segmentSize=0;
 	Mat smallerImg = Mat::zeros( smallSize, src.type());
 	Mat dst = Mat::zeros(smallSize,src.type());
+	Mat shadows = Mat::zeros(smallSize,src.type());
 	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
-	for(int i=smallerImg.rows-1;i>0;i--)
+	for(int i=smallerImg.rows-1;i>0;i--){
 		for(int j=0;j<smallerImg.cols;j++)
 		{
 			Point downNeighbor = NeighborPixel(Point(i,j),DOWN,smallerImg);
@@ -95,9 +97,53 @@ void SearchForShadow(Mat src,int uBoundary)
 				dst.at<unsigned char>(i,j)=255;
 				
 		}
+	}
+	
+	for(int i=smallerImg.rows-2;i>1;i--){
+		for(int j=1;j<smallerImg.cols-1;j++)
+		{
+			if(dst.at<unsigned char>(i, j)==255 //8-connectivity
+				&&(dst.at<unsigned char>(i-1, j-1)==255
+				|| dst.at<unsigned char>(i-1, j)==255
+				|| dst.at<unsigned char>(i-1, j+1)==255
+				|| dst.at<unsigned char>(i, j-1)==255
+				|| dst.at<unsigned char>(i, j+1)==255
+				|| dst.at<unsigned char>(i+1, j-1)==255
+				|| dst.at<unsigned char>(i+1, j)==255
+				|| dst.at<unsigned char>(i+1, j+1)==255)
+			)
+			{
+				segmentSize++;
+				shadows.at<unsigned char>(i,j)=125;
+			}
+			else 
+			{
+				if(segmentSize<30)
+				{
+					while(segmentSize>=0)
+					{
+						shadows.at<unsigned char>(i,j-segmentSize-1)=0;
+						segmentSize--;
+					}
+				}
+				else
+					segmentSize=0;
+			}
+			if(j==smallerImg.cols-2)
+			{
+				while(segmentSize>=0)
+				{
+					shadows.at<unsigned char>(i,j-segmentSize-1)=0;
+					segmentSize--;
+				}
+			}
+		}
+		segmentSize=0;
+	}
 	namedWindow("small", CV_WINDOW_AUTOSIZE);
-	imshow("small", dst);
+	imshow("small", shadows);
 	waitKey();	
+	
 }
 
 
