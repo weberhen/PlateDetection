@@ -21,9 +21,14 @@ typedef struct asphaltInfo{
 	int porcentageAsphalt;
 } structAsphaltInfo;
 
+Mat EraseLine(Mat img, int segmentSize, int i, int j);
+Mat SurroundCar(Mat src,int i,int j,int segmentSize);
 Mat CannyThreshold(Mat src, int lowThreshold);
 Mat FreeDrivingSpace(Mat dst, Mat src,structAsphaltInfo *_structAsphaltInfo);
 structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray);
 void SearchForShadow(Mat src,int uBoundary);
+int SizeOfCar(Mat *smallerImg, int y, int x);
+bool PixelBelongToSegment(Mat dst, int i, int j);
+
 
 #endif
