@@ -32,7 +32,7 @@ Mat EraseLine(Mat img, int segmentSize, int i, int j)
  * \param i the row of the bottom right corner of the square
  * \param j the col of the bottom right corner of the square
  * \param segmentSize the size of the car (horizontal)
- * \surround the car with a square using square() function from opencv
+ * surround the car with a square using square() function from opencv
  * \return the image with the square
  */
 Mat SurroundCar(Mat src_gray,int i,int j,int segmentSize)
@@ -123,6 +123,57 @@ structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
 	return _structAsphaltInfo;
 }
 
+vector<vector<Point> > refineDuplicateShadows(Mat img, int *numberOfShadows)
+{
+	vector<vector<Point> > shadows;
+	namedWindow("partial", CV_WINDOW_AUTOSIZE);
+	for(int i=0;i<50;i++)
+	{
+		shadows.push_back(vector<Point>()); //just adding empty rows
+	}
+	int _sizeOfCar=0;
+	int _numberOfShadows=0; 
+	for(int i=1;i<img.rows-1;i++)
+	{
+		for(int j=1;j<img.cols-1;j++)
+		{
+			int pixel =			img.at<unsigned char>(i, j);
+			int pixelAbove = 	img.at<unsigned char>((i+1), j);
+			int pixelBelow = 	img.at<unsigned char>((i-1), j);
+			if((pixel==255)||((pixelAbove==255)||(pixelBelow==255)))
+			{
+				if(_sizeOfCar==0) //the beginning of a new shadow
+				{
+					shadows[_numberOfShadows].push_back(Point(j,i));
+					cout<<"found one"<<endl;
+				}
+				//then clean that pixel (and its neighbors) from the shadow
+				img.at<unsigned char>((i+1), j)=0;
+				img.at<unsigned char>(i, j)=0;
+				img.at<unsigned char>((i-1), j)=0;
+/*				cout<<"apaguei "<<i<<" "<<j<<endl;
+				cout<<"apaguei "<<(i+1)<<" "<<j<<endl;
+				cout<<"apaguei "<<(i-1)<<" "<<j<<endl;
+				cout<<endl;*/
+				imshow("partial",img);
+					waitKey();
+				_sizeOfCar++;
+			}
+			else
+			{
+				if((_sizeOfCar!=0)||((_sizeOfCar!=0)&&(j==img.cols-2)))
+				{
+					shadows[_numberOfShadows].push_back(Point(i,j));
+					_numberOfShadows++;
+					_sizeOfCar=0;
+				}
+			}
+		}
+	}
+	*numberOfShadows=_numberOfShadows;
+	return shadows;
+}
+
 void SearchForShadow(Mat src,int uBoundary)
 {
 	namedWindow("small", CV_WINDOW_AUTOSIZE);
@@ -133,6 +184,8 @@ void SearchForShadow(Mat src,int uBoundary)
 	Mat shadows = Mat::zeros(smallSize,src.type());
 	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
 	resize(src, src, smallerImg.size(),0,0,INTER_CUBIC);
+
+	vector<vector<Point> > contours;
 	for(int i=smallerImg.rows-1;i>0;i--){
 		for(int j=0;j<smallerImg.cols;j++)
 		{
@@ -150,45 +203,64 @@ void SearchForShadow(Mat src,int uBoundary)
 			if(PixelBelongToSegment(dst,i,j))
 			{
 				segmentSize++;
-				shadows.at<unsigned char>(i,j)=125;
+				shadows.at<unsigned char>(i,j)=255;
 			}
 			else 
 			{
 				if(segmentSize<(0.10*smallerImg.cols)||
 				  ((segmentSize>i*1.35) || (segmentSize<i*0.65)))
 					EraseLine(shadows, segmentSize, i, j);
-				else
-					src = SurroundCar(src,i,j,segmentSize);
+				//else
+					//src = SurroundCar(src,i,j,segmentSize);
 				segmentSize=0;
 			}
 		}
 		EraseLine(shadows, segmentSize, i, smallerImg.cols-2);
 		segmentSize=0;
 	}
+	vector<Vec4i> lines;
+	vector<vector<Point> > shadowsVector;
+	HoughLinesP(shadows,lines,2,CV_PI / 180, 10,50,10);
 	imshow("small", shadows);
 	waitKey();
-	imshow("small", src);
-	waitKey();	
-	
+	for(size_t i =0; i < lines.size();i++)
+	{
+		Vec4i l = lines[i];
+		cout<<"valor: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
+	}	
 }
 
-int SizeOfCar(Mat *smallerImg, int row, int col)
+/*
+ * \param smallerImg 
+ * \param row row of the pixel
+ * \param col col of the pixel
+ * calculates the size of the car (horizontal) based on the size of the shadow
+ * \return the size of the car
+ */
+int SizeOfCar(Mat *img, int row, int col)
 {
 	int _sizeOfCar=0;
-	while((((*smallerImg).at<unsigned char>(row+1, col)!=0)
-		||((*smallerImg).at<unsigned char>(row, col)!=0)
-		||((*smallerImg).at<unsigned char>(row-1, col)!=0))
-		&& (col>=0))
+	int pixel =			(*img).at<unsigned char>(row+1, col);
+	int pixelAbove = 	(*img).at<unsigned char>(row+1, col);
+	int pixelBelow = 	(*img).at<unsigned char>(row-1, col);
+	while(((pixel!=0)||(pixelAbove!=0)||(pixelBelow!=0))&&(col>=0))
 	{
-		(*smallerImg).at<unsigned char>(row+1, col)=0;
-		(*smallerImg).at<unsigned char>(row, col)=125;
-		(*smallerImg).at<unsigned char>(row-1, col)=0;
+		(*img).at<unsigned char>(row+1, col)=0;
+		(*img).at<unsigned char>(row, col)=125;
+		(*img).at<unsigned char>(row-1, col)=0;
 		_sizeOfCar++;
 		col--;
 	}
 	return _sizeOfCar;
 }
 
+/*
+ * \param dst the image where the pixel is
+ * \param i the row of the pixel
+ * \param j the col of the pixel
+ * Given a pixel's position, it returns if it belongs to a segment or not
+ * \return true if it belongs, and false otherwise
+ */
 bool PixelBelongToSegment(Mat dst, int i, int j)
 {
 	if(dst.at<unsigned char>(i, j)==255 //8-connectivity
