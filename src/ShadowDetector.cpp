@@ -9,6 +9,13 @@ int ratio = 3;
 int kernel_size = 3;
 String window_name = "Edge Map";
 
+extern double _rho;
+extern double _theta;
+extern int _threshold;
+extern double _minLineLenght;
+extern double _maxLineGap;
+
+
 /*
  * \param img the image that will wave one line erased
  * \param segmentSize the size of the segment that will be erased
@@ -37,7 +44,7 @@ Mat EraseLine(Mat img, int segmentSize, int i, int j)
  */
 Mat SurroundCar(Mat src_gray,int i,int j,int segmentSize)
 {
-	segmentSize = SizeOfCar(&src_gray, i, j); 
+	//segmentSize = SizeOfCar(&src_gray, i, j); 
 //	imshow("Merged lines", src_gray);
 //	waitKey();
 	int height;
@@ -123,55 +130,80 @@ structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
 	return _structAsphaltInfo;
 }
 
-vector<vector<Point> > refineDuplicateShadows(Mat img, int *numberOfShadows)
+vector<Vec4i> excludeDuplicateShadows(vector<Vec4i> lines)
 {
-	vector<vector<Point> > shadows;
-	namedWindow("partial", CV_WINDOW_AUTOSIZE);
-	for(int i=0;i<50;i++)
+	for(unsigned int i =0; i < (lines.size()-1);i++)
 	{
-		shadows.push_back(vector<Point>()); //just adding empty rows
-	}
-	int _sizeOfCar=0;
-	int _numberOfShadows=0; 
-	for(int i=1;i<img.rows-1;i++)
-	{
-		for(int j=1;j<img.cols-1;j++)
+		Vec4i element;
+		if(lines.size()!=0) //if there are no shadows, this could lead to a segfault
+			element = lines[i];
+		else //this will prevent the next for to execute
+			return lines;
+		for(size_t j=i+1;j<lines.size();j++)
 		{
-			int pixel =			img.at<unsigned char>(i, j);
-			int pixelAbove = 	img.at<unsigned char>((i+1), j);
-			int pixelBelow = 	img.at<unsigned char>((i-1), j);
-			if((pixel==255)||((pixelAbove==255)||(pixelBelow==255)))
-			{
-				if(_sizeOfCar==0) //the beginning of a new shadow
-				{
-					shadows[_numberOfShadows].push_back(Point(j,i));
-					cout<<"found one"<<endl;
+			Vec4i list = lines[j];
+			//if j of element is similar to j of another (10% threshold)	
+			if((element[0]>list[0]*0.9)&&(element[0]<list[0]*1.1))
+				if((element[1]>list[1]*0.9)&&(element[1]<list[1]*1.1))
+				{	
+					//cout<<element[0]<<" é maior que "<<list[0]*0.8<<" e menor do que "<<list[0]*1.2<<endl;
+					//cout<<"that is similarity"<<endl;
+					//cout<<"new unique shadow is "<<min(element[0],list[0])<<" "<<element[1]<<" "<<max(element[2],list[2])<<" "<<element[1]<<endl;
+					lines[i][0]=min(element[0],list[0]);
+					lines[i][2]=max(element[2],list[2]);
+					lines[i][3]=element[1];
+					//cout<<"merging: "<<element[0]<<" "<<element[1]<<" "<<element[2]<<" "<<element[3]<<" "<<endl;
+					//cout<<"with: "<<list[0]<<" "<<list[1]<<" "<<list[2]<<" "<<list[3]<<" "<<endl;
+
+					lines.erase(lines.begin()+j);
+					for(size_t i =0; i < lines.size();i++)
+					{
+						Vec4i l = lines[i];
+						//cout<<"after merging: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
+					}
 				}
-				//then clean that pixel (and its neighbors) from the shadow
-				img.at<unsigned char>((i+1), j)=0;
-				img.at<unsigned char>(i, j)=0;
-				img.at<unsigned char>((i-1), j)=0;
-/*				cout<<"apaguei "<<i<<" "<<j<<endl;
-				cout<<"apaguei "<<(i+1)<<" "<<j<<endl;
-				cout<<"apaguei "<<(i-1)<<" "<<j<<endl;
-				cout<<endl;*/
-				imshow("partial",img);
-					waitKey();
-				_sizeOfCar++;
-			}
-			else
-			{
-				if((_sizeOfCar!=0)||((_sizeOfCar!=0)&&(j==img.cols-2)))
-				{
-					shadows[_numberOfShadows].push_back(Point(i,j));
-					_numberOfShadows++;
-					_sizeOfCar=0;
+		}
+		
+	}
+	//cout<<"ANOTHER ROUND"<<endl;
+	for(size_t i =0; i < lines.size();i++)
+	{	
+		Vec4i element = lines[i];
+		for(size_t j=i+1;j<lines.size();j++)
+		{
+			Vec4i list = lines[j];
+			//if j of element is similar to j of another (10% threshold)	
+			if((element[1]>list[1]*0.8)&&(element[1]<list[1]*1.2)){
+				//cout<<"element[0] "<<element[0]<<" element[2] "<<element[2]<<endl;
+				//cout<<"list[0] "<<list[0]<<" list[2] "<<list[2]<<endl;
+				if(((element[0]>list[0])&&(element[0]<list[2]))||
+				   ((element[2]>list[0])&&(element[2]<list[2]))||
+				   ((list[0]>element[0])&&(list[0]<element[2]))||
+				   ((list[2]>element[0])&&(list[2]<element[2])))
+				{	
+					//cout<<element[1]<<" é maior que "<<list[1]*0.8<<" e menor do que "<<list[1]*1.2<<endl;
+					//cout<<"that is similarity"<<endl;
+					//cout<<"new unique shadow is "<<min(element[0],list[0])<<" "<<element[1]<<" "<<max(element[2],list[2])<<" "<<element[1]<<endl;
+					j--;
+					lines[i][0]=min(element[0],list[0]);
+					lines[i][2]=max(element[2],list[2]);
+					lines[i][3]=element[1];
+					//cout<<"merging: "<<element[0]<<" "<<element[1]<<" "<<element[2]<<" "<<element[3]<<" "<<endl;
+					//cout<<"with: "<<list[0]<<" "<<list[1]<<" "<<list[2]<<" "<<list[3]<<" "<<endl;
+
+					lines.erase(lines.begin()+j+1);
+					for(size_t in =0; in < lines.size();in++)
+					{
+						Vec4i l = lines[in];
+						//cout<<"after merging: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
+					}
 				}
+			//cout<<"I agora vale "<<i<<" e J vale "<<j<<endl;
 			}
 		}
+		
 	}
-	*numberOfShadows=_numberOfShadows;
-	return shadows;
+	return lines;
 }
 
 void SearchForShadow(Mat src,int uBoundary)
@@ -219,15 +251,30 @@ void SearchForShadow(Mat src,int uBoundary)
 		segmentSize=0;
 	}
 	vector<Vec4i> lines;
-	vector<vector<Point> > shadowsVector;
-	HoughLinesP(shadows,lines,2,CV_PI / 180, 10,50,10);
+	//cout<<"rho "<<_rho<<" theta "<<_theta<<" threshold "<<_threshold<<" minLineLenght "<<_minLineLenght<<" maxLineGap "<<_maxLineGap<<endl;
+	HoughLinesP(shadows,lines,_rho,_theta, _threshold,_minLineLenght,_maxLineGap);
 	imshow("small", shadows);
 	waitKey();
-	for(size_t i =0; i < lines.size();i++)
+	cout<<"found "<<lines.size()<<" shadows"<<endl;
+	/*for(size_t i =0; i < lines.size();i++)
 	{
 		Vec4i l = lines[i];
 		cout<<"valor: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
+	}*/	
+	lines = excludeDuplicateShadows(lines);
+	for(int i =0;i<lines.size();i++)
+	{
+		Vec4i l = lines[i];
+		src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
 	}	
+	imshow("small", src);
+	waitKey();
+	/*cout<<endl<<endl;
+	for(size_t i =0; i < lines.size();i++)
+	{
+		Vec4i l = lines[i];
+		cout<<"FINAL: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
+	}*/
 }
 
 /*
