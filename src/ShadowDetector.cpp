@@ -55,7 +55,7 @@ Mat SurroundCar(Mat src_gray,int i,int j,int segmentSize)
 
 	rectangle(src_gray,Point(j-segmentSize,height),Point(j,i),Scalar(100,100,100),2,CV_AA);
 	segmentSize=0;
-	cout<<"car detected"<<endl;
+	//cout<<"car detected"<<endl;
 	return src_gray;
 }
 
@@ -253,9 +253,9 @@ void SearchForShadow(Mat src,int uBoundary)
 	vector<Vec4i> lines;
 	//cout<<"rho "<<_rho<<" theta "<<_theta<<" threshold "<<_threshold<<" minLineLenght "<<_minLineLenght<<" maxLineGap "<<_maxLineGap<<endl;
 	HoughLinesP(shadows,lines,_rho,_theta, _threshold,_minLineLenght,_maxLineGap);
-	imshow("small", shadows);
-	waitKey();
-	cout<<"found "<<lines.size()<<" shadows"<<endl;
+	//imshow("small", shadows);
+	//waitKey();
+	//cout<<"found "<<lines.size()<<" shadows"<<endl;
 	/*for(size_t i =0; i < lines.size();i++)
 	{
 		Vec4i l = lines[i];
@@ -268,7 +268,7 @@ void SearchForShadow(Mat src,int uBoundary)
 		src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
 	}	
 	imshow("small", src);
-	waitKey();
+	//waitKey();
 	/*cout<<endl<<endl;
 	for(size_t i =0; i < lines.size();i++)
 	{
