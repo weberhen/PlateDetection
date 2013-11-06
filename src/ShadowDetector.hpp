@@ -1,6 +1,7 @@
 #ifndef _SHADOWDETECTOR
 #define _SHADOWDETECTOR
 
+#include "TextDetection.hpp"
 #include "MainShadowDetector.hpp"
 #include "opencv2/opencv.hpp"
 #include "MathFunctions.hpp"
@@ -11,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+
 using namespace std;
 using namespace cv;
 
@@ -28,6 +30,7 @@ Mat CannyThreshold(Mat src, int lowThreshold);
 Mat FreeDrivingSpace(Mat dst, Mat src,structAsphaltInfo *_structAsphaltInfo);
 structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray);
 vector<Vec4i> excludeDuplicateShadows(vector<Vec4i> lines);
+vector<Vec4i> mergeLines(Mat src);
 void SearchForShadow(Mat src,int uBoundary);
 int SizeOfCar(Mat *smallerImg, int y, int x);
 bool PixelBelongToSegment(Mat dst, int i, int j);

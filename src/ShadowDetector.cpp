@@ -1,5 +1,6 @@
 #include "ShadowDetector.hpp"
 
+
 Mat src_gray;
 Mat dst, detected_edges;
 
@@ -8,12 +9,6 @@ int const max_lowThreshold = 100;
 int ratio = 3;
 int kernel_size = 3;
 String window_name = "Edge Map";
-
-extern double _rho;
-extern double _theta;
-extern int _threshold;
-extern double _minLineLenght;
-extern double _maxLineGap;
 
 
 /*
@@ -137,7 +132,7 @@ vector<Vec4i> excludeDuplicateShadows(vector<Vec4i> lines)
 		Vec4i element;
 		if(lines.size()!=0) //if there are no shadows, this could lead to a segfault
 			element = lines[i];
-		else //this will prevent the next for to execute
+		else //this will prevent the next "for" loop to execute
 			return lines;
 		for(size_t j=i+1;j<lines.size();j++)
 		{
@@ -146,21 +141,10 @@ vector<Vec4i> excludeDuplicateShadows(vector<Vec4i> lines)
 			if((element[0]>list[0]*0.9)&&(element[0]<list[0]*1.1))
 				if((element[1]>list[1]*0.9)&&(element[1]<list[1]*1.1))
 				{	
-					//cout<<element[0]<<" é maior que "<<list[0]*0.8<<" e menor do que "<<list[0]*1.2<<endl;
-					//cout<<"that is similarity"<<endl;
-					//cout<<"new unique shadow is "<<min(element[0],list[0])<<" "<<element[1]<<" "<<max(element[2],list[2])<<" "<<element[1]<<endl;
 					lines[i][0]=min(element[0],list[0]);
 					lines[i][2]=max(element[2],list[2]);
 					lines[i][3]=element[1];
-					//cout<<"merging: "<<element[0]<<" "<<element[1]<<" "<<element[2]<<" "<<element[3]<<" "<<endl;
-					//cout<<"with: "<<list[0]<<" "<<list[1]<<" "<<list[2]<<" "<<list[3]<<" "<<endl;
-
 					lines.erase(lines.begin()+j);
-					for(size_t i =0; i < lines.size();i++)
-					{
-						Vec4i l = lines[i];
-						//cout<<"after merging: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
-					}
 				}
 		}
 		
@@ -168,37 +152,24 @@ vector<Vec4i> excludeDuplicateShadows(vector<Vec4i> lines)
 	//cout<<"ANOTHER ROUND"<<endl;
 	for(size_t i =0; i < lines.size();i++)
 	{	
-		Vec4i element = lines[i];
+		Vec4i element = lines[i]; //one line is compared to the rest of the list
 		for(size_t j=i+1;j<lines.size();j++)
 		{
-			Vec4i list = lines[j];
-			//if j of element is similar to j of another (10% threshold)	
+			Vec4i list = lines[j]; //here the others lines are selected, one by one
+			//if element is similar to another line of the list (10% threshold)	
 			if((element[1]>list[1]*0.8)&&(element[1]<list[1]*1.2)){
-				//cout<<"element[0] "<<element[0]<<" element[2] "<<element[2]<<endl;
-				//cout<<"list[0] "<<list[0]<<" list[2] "<<list[2]<<endl;
+				//if there are lines closed enough to be merged
 				if(((element[0]>list[0])&&(element[0]<list[2]))||
 				   ((element[2]>list[0])&&(element[2]<list[2]))||
 				   ((list[0]>element[0])&&(list[0]<element[2]))||
 				   ((list[2]>element[0])&&(list[2]<element[2])))
 				{	
-					//cout<<element[1]<<" é maior que "<<list[1]*0.8<<" e menor do que "<<list[1]*1.2<<endl;
-					//cout<<"that is similarity"<<endl;
-					//cout<<"new unique shadow is "<<min(element[0],list[0])<<" "<<element[1]<<" "<<max(element[2],list[2])<<" "<<element[1]<<endl;
-					j--;
+					j--; //to erase the right one
 					lines[i][0]=min(element[0],list[0]);
 					lines[i][2]=max(element[2],list[2]);
 					lines[i][3]=element[1];
-					//cout<<"merging: "<<element[0]<<" "<<element[1]<<" "<<element[2]<<" "<<element[3]<<" "<<endl;
-					//cout<<"with: "<<list[0]<<" "<<list[1]<<" "<<list[2]<<" "<<list[3]<<" "<<endl;
-
 					lines.erase(lines.begin()+j+1);
-					for(size_t in =0; in < lines.size();in++)
-					{
-						Vec4i l = lines[in];
-						//cout<<"after merging: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
-					}
 				}
-			//cout<<"I agora vale "<<i<<" e J vale "<<j<<endl;
 			}
 		}
 		
@@ -206,9 +177,51 @@ vector<Vec4i> excludeDuplicateShadows(vector<Vec4i> lines)
 	return lines;
 }
 
+vector<Vec4i> mergeLines(Mat src)
+{
+	vector<Vec4i> lines;
+	Vec4i element;
+	int segmentSize=0;
+	int i=src.rows-1;
+	bool beginOfNewLine=true;
+	Mat dst = Mat::zeros( src.size(), src.type() );
+	for(int j=0;j<src.cols;j++)
+	{
+		while((src.at<unsigned char>(i,j)==0)&&(i>0))//while there are no shadow in the col		
+		{
+			i--;
+		}
+		if(i>1) //a shadow was found at "j" column
+		{	
+			//dst.at<unsigned char>(i,j)=255;
+			if(beginOfNewLine)
+			{
+				beginOfNewLine=false;
+				element[0]=j; //saves the x axis of the beginning of the shadow
+				element[1]=i; //...and the y axis
+			}
+			segmentSize++;
+		}
+		else //the shadow is over. Lets see if it is worth to consider as a car shadow
+		{	//if the shadow has a minimum size of 5 pixels
+			if((segmentSize>5) && (beginOfNewLine==false))
+			{
+				element[2]=j;
+				element[3]=element[1];
+				beginOfNewLine=true;
+				lines.push_back(element);
+			}
+		}
+		i=src.rows-1;
+	}
+	return lines;
+}
+
 void SearchForShadow(Mat src,int uBoundary)
 {
+	Mat bigImg(src);
 	namedWindow("small", CV_WINDOW_AUTOSIZE);
+	namedWindow("small2", CV_WINDOW_AUTOSIZE);
 	Size smallSize(src.cols*0.3,src.rows*0.3);
 	int segmentSize=0;
 	Mat smallerImg = Mat::zeros( smallSize, src.type());
@@ -217,7 +230,6 @@ void SearchForShadow(Mat src,int uBoundary)
 	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
 	resize(src, src, smallerImg.size(),0,0,INTER_CUBIC);
 
-	vector<vector<Point> > contours;
 	for(int i=smallerImg.rows-1;i>0;i--){
 		for(int j=0;j<smallerImg.cols;j++)
 		{
@@ -239,11 +251,9 @@ void SearchForShadow(Mat src,int uBoundary)
 			}
 			else 
 			{
-				if(segmentSize<(0.10*smallerImg.cols)||
-				  ((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+				if(segmentSize<(0.10*smallerImg.cols)
+				||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
 					EraseLine(shadows, segmentSize, i, j);
-				//else
-					//src = SurroundCar(src,i,j,segmentSize);
 				segmentSize=0;
 			}
 		}
@@ -251,30 +261,31 @@ void SearchForShadow(Mat src,int uBoundary)
 		segmentSize=0;
 	}
 	vector<Vec4i> lines;
-	//cout<<"rho "<<_rho<<" theta "<<_theta<<" threshold "<<_threshold<<" minLineLenght "<<_minLineLenght<<" maxLineGap "<<_maxLineGap<<endl;
-	HoughLinesP(shadows,lines,_rho,_theta, _threshold,_minLineLenght,_maxLineGap);
-	//imshow("small", shadows);
-	//waitKey();
-	//cout<<"found "<<lines.size()<<" shadows"<<endl;
-	/*for(size_t i =0; i < lines.size();i++)
-	{
-		Vec4i l = lines[i];
-		cout<<"valor: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
-	}*/	
+
+	lines = mergeLines(shadows);
+		
+	//imshow("small",shadows);
+	//waitKey();		
 	lines = excludeDuplicateShadows(lines);
+	//for each shadow that was identified, create the Region of Interest (ROI)
 	for(int i =0;i<lines.size();i++)
 	{
 		Vec4i l = lines[i];
-		src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
+		//SurroundCar(row, col, size)
+		int x = (l[0])/0.3;
+		int y = (l[3]/3)/0.3;
+		int width = (l[2]-l[0])/0.3;
+		int height = l[3]/0.3-y;
+		width=width*0.85; //reduces the width's ROI in 15% 
+		x=x+width*0.15;   //reduces the x axis of the ROI in 15% 
+		height=height*0.75; //discard the shadow of the vehicule
+		//src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
+		//cv::Rect(x, y, width, height)
+		cv::Rect myROI(x, y, width, height);
+		imshow("small", bigImg(myROI));
 	}	
-	imshow("small", src);
+	imshow("small2", src);
 	//waitKey();
-	/*cout<<endl<<endl;
-	for(size_t i =0; i < lines.size();i++)
-	{
-		Vec4i l = lines[i];
-		cout<<"FINAL: "<<l[0]<<" "<<l[1]<<" "<<l[2]<<" "<<l[3]<<" "<<endl;
-	}*/
 }
 
 /*
