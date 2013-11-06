@@ -34,10 +34,12 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
 FIND_PACKAGE(OpenCV REQUIRED)
 
 add_executable(ShadowDetector ${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
-						${CMAKE_SOURCE_DIR}/src/TextDetection.cpp 
+						            ${CMAKE_SOURCE_DIR}/src/SquareDetection.cpp
+            ${CMAKE_SOURCE_DIR}/src/TextDetection.cpp
+
 						${CMAKE_SOURCE_DIR}/src/ImageManipulation.cpp
-                        ${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
-                        ${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
+            ${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
+            ${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
                         )
 
 TARGET_LINK_LIBRARIES(ShadowDetector ${OpenCV_LIBS})
