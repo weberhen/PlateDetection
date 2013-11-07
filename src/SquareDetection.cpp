@@ -4,9 +4,6 @@
 
 #include "SquareDetection.hpp"
 
-using namespace cv;
-using namespace std;
-
 int thresh = 50, N = 11;
 const char* wndname = "Square Detection Demo";
 
@@ -36,7 +33,7 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
     vector<vector<Point> > contours;
     
     // find squares in every color plane of the image
-    for( int c = 0; c < 3; c++ )
+    for( int c = 0; c < 1; c++ )
     {
         int ch[] = {c, 0};
         mixChannels(&timg, 1, &gray0, 1, ch, 1);

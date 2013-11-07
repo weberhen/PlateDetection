@@ -220,8 +220,8 @@ vector<Vec4i> mergeLines(Mat src)
 void SearchForShadow(Mat src,int uBoundary)
 {
 	Mat bigImg(src);
-	namedWindow("small", CV_WINDOW_AUTOSIZE);
-	namedWindow("small2", CV_WINDOW_AUTOSIZE);
+	// HEREEE namedWindow("small", CV_WINDOW_AUTOSIZE);
+	//HEREEE namedWindow("small2", CV_WINDOW_AUTOSIZE);
 	Size smallSize(src.cols*0.3,src.rows*0.3);
 	int segmentSize=0;
 	Mat smallerImg = Mat::zeros( smallSize, src.type());
@@ -229,6 +229,7 @@ void SearchForShadow(Mat src,int uBoundary)
 	Mat shadows = Mat::zeros(smallSize,src.type());
 	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
 	resize(src, src, smallerImg.size(),0,0,INTER_CUBIC);
+	//imshow("small",src);
 
 	for(int i=smallerImg.rows-1;i>0;i--){
 		for(int j=0;j<smallerImg.cols;j++)
@@ -282,10 +283,14 @@ void SearchForShadow(Mat src,int uBoundary)
 		//src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
 		//cv::Rect(x, y, width, height)
 		cv::Rect myROI(x, y, width, height);
-		imshow("small", bigImg(myROI));
-	}	
-	imshow("small2", src);
+		//HEREEE imshow("small", bigImg(myROI));
+		Mat rearVehicule = bigImg(myROI);
+		IplImage * ipl_img = new IplImage(rearVehicule);
+		textDetection(ipl_img, 1);
+		}	
+	//HEREEE imshow("small2", src);
 	//waitKey();
+
 }
 
 /*

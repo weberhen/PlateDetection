@@ -2,8 +2,6 @@
 #define _SHADOWDETECTOR
 
 #include "TextDetection.hpp"
-#include "SquareDetection.hpp"
-#include "MainShadowDetector.hpp"
 #include "opencv2/opencv.hpp"
 #include "MathFunctions.hpp"
 #include "ImageManipulation.hpp"

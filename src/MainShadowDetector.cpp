@@ -1,9 +1,16 @@
 #include "MainShadowDetector.hpp"
-
+#include<time.h>
 
 int main(int argc, char** argv)
 {
 	Mat dst, source, src_gray, src;
+
+	//Start and end times
+	time_t start,end;
+
+	//Start the clock
+	time(&start);
+	int counter=0;
 
     VideoCapture stream("bento_ipiranga_1410.h264");
 
@@ -38,7 +45,12 @@ int main(int argc, char** argv)
 //		cout<<"Median is: "<<_structAsphaltInfo.median<<endl;
 	
 		SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
-
+	//Stop the clock and show FPS
+	time(&end);
+	++counter;
+	double sec=difftime(end,start);
+	double fps=counter/sec;
+	printf("\n time: %lf",sec);
         waitKey(20);
     }
     stream.release();

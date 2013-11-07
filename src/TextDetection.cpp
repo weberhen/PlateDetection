@@ -285,8 +285,8 @@ void renderChains (IplImage * SWTImage,
 IplImage * textDetection (IplImage * input, bool dark_on_light)
 {
     assert ( input->depth == IPL_DEPTH_8U );
-    assert ( input->nChannels == 3 );
-    std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
+    //assert ( input->nChannels == 3 );
+    //std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
     // Convert to grayscale
     IplImage * grayImage =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
@@ -297,7 +297,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * edgeImage =
             cvCreateImage( cvGetSize (input),IPL_DEPTH_8U, 1 );
     cvCanny(grayImage, edgeImage, threshold_low, threshold_high, 3) ;
-    cvSaveImage ( "canny.png", edgeImage);
+    //cvSaveImage ( "canny.png", edgeImage);
 
     // Create gradient X, gradient Y
     IplImage * gaussianImage =
@@ -334,7 +334,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * saveSWT =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
     cvConvertScale(output2, saveSWT, 255, 0);
-    cvSaveImage ( "SWT.png", saveSWT);
+    //cvSaveImage ( "SWT.png", saveSWT);
     cvReleaseImage ( &output2 );
     cvReleaseImage( &saveSWT );
 
@@ -354,7 +354,28 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * output3 =
             cvCreateImage ( cvGetSize ( input ), 8U, 3 );
     renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
-    cvSaveImage ( "components.png",output3);
+    if(!validComponents.empty())
+    {
+        int p[3];
+        p[0] = CV_IMWRITE_JPEG_QUALITY;
+        p[1] = 100;
+        p[2] = 0;
+        char* name_with_extension = (char*)malloc(sizeof(char)*60); 
+        strcpy(name_with_extension, "/home/pi/Sandbox/ShadowDetector/bin");
+        char* buffer = (char*)malloc(sizeof(char)*60); 
+        sprintf(buffer, "%d",clock());
+        strcat(name_with_extension, buffer); 
+        strcat(name_with_extension, ".png"); 
+        //cvSaveImage(name_with_extension, input,p);
+        cvReleaseImage ( &gradientX );
+        cvReleaseImage ( &gradientY );
+        cvReleaseImage ( &SWTImage );
+        cvReleaseImage ( &edgeImage );
+        cvReleaseImage ( &output3 );
+        return input;
+    }
+    //cvSaveImage ( "components.png",output3);
+    
     //cvReleaseImage ( &output3 );
 
     // Make chains of components
@@ -365,7 +386,8 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
     renderChains ( SWTImage, validComponents, chains, output4 );
     //cvSaveImage ( "text.png", output4);
-
+    cv::namedWindow("small",CV_WINDOW_AUTOSIZE);
+    cvShowImage("small", output4);
     IplImage * output5 =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
     cvCvtColor (output4, output5, CV_GRAY2RGB);
