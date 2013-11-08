@@ -46,11 +46,11 @@ int main(int argc, char** argv)
 	
 		SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 	//Stop the clock and show FPS
-	time(&end);
-	++counter;
-	double sec=difftime(end,start);
-	double fps=counter/sec;
-	printf("\n time: %lf",sec);
+//	time(&end);
+//	++counter;
+//	double sec=difftime(end,start);
+//	double fps=counter/sec;
+//	printf("\n time: %lf",sec);
         waitKey(20);
     }
     stream.release();

@@ -102,5 +102,6 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                  std::vector<Point2d> & compDimensions,
                  std::vector<std::pair<Point2d,Point2d> > & compBB);
 
+
 #endif // TEXTDETECTION_H
 

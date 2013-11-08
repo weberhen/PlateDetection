@@ -9,6 +9,85 @@ int const max_lowThreshold = 100;
 int ratio = 3;
 int kernel_size = 3;
 String window_name = "Edge Map";
+CvPoint pt[4];
+
+/////////////////////////////////////////////////////////////////
+
+void drawSquares2( IplImage* img, CvSeq* squares )
+{
+    CvSeqReader reader;
+    IplImage* cpy = cvCloneImage( img );    
+    
+    // initialize reader of the sequence
+    cvStartReadSeq( squares, &reader, 0 );
+    
+    int width = 0, height = 0;
+    printf("%d squares found\n", squares->total/4);
+    // read 4 sequence elements at a time (all vertices of a square)
+    for(int i = 0; i < squares->total; i += 4 )
+    {
+        char* name_with_extension = (char*)malloc(sizeof(char)*60); 
+        CvPoint* rect = pt;
+        int count = 4;
+        int max_x=0, min_x=99999,max_y=0,min_y=99999;
+        // read 4 vertices
+        memcpy( pt, reader.ptr, squares->elem_size );
+        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
+        memcpy( pt + 1, reader.ptr, squares->elem_size );
+        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
+        memcpy( pt + 2, reader.ptr, squares->elem_size );
+        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
+        memcpy( pt + 3, reader.ptr, squares->elem_size );
+        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
+        //if(true)
+        {
+            //printf("x:%d y:%d\n",pt[0].x,pt[0].y);
+            //printf("x:%d y:%d\n",pt[1].x,pt[1].y);
+            //printf("x:%d y:%d\n",pt[2].x,pt[2].y);
+            //printf("x:%d y:%d\n--------\n",pt[3].x,pt[3].y);
+            //printf("parada 12\n");
+            for(int j=0;j<4;j++)
+            {
+                if(pt[j].x > max_x)
+                    max_x=pt[j].x;
+                if(pt[j].x < min_x)
+                    min_x=pt[j].x;
+                if(pt[j].y > max_y)
+                    max_y=pt[j].y;
+                if(pt[j].y < min_y)
+                    min_y=pt[j].y;
+            }
+            width = max_x-min_x;
+            height = max_y-min_y;
+            printf("width:%d height:%d\n",width,height);
+
+            if((height < width/3) && (height < img->height/2) && (width < img->width/2) && (height < width/2))
+            {
+                printf("passed\n");
+                cvSetImageROI(img, cvRect(min_x,min_y,max_x-min_x,max_y-min_y));
+                // cropped image
+                IplImage *cropSource = cvCreateImage(cvSize(width,height), img->depth, img->nChannels);
+                // copy
+                //printf("img - width:%d height:%d \n",img->width, img->height);
+                //printf("cropSource - width:%d height:%d \n",cropSource->width, cropSource->height);
+                
+                namedWindow("GENIOUS",CV_WINDOW_AUTOSIZE);
+                cvShowImage("GENIOUS",cropSource);
+                
+                
+            }
+        }
+        // draw the square as a closed polyline 
+        //cvPolyLine( cpy, &rect, &count, 1, 1, CV_RGB(0,255,0), 3, 8,0 );
+    }
+    
+    // show the resultant image
+    //cvShowImage("image",cpy );
+    cvReleaseImage( &cpy );
+}
+
+////////////////////////////////////////////////////////////////
+
 
 
 /*
@@ -283,12 +362,121 @@ void SearchForShadow(Mat src,int uBoundary)
 		//src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
 		//cv::Rect(x, y, width, height)
 		cv::Rect myROI(x, y, width, height);
-		//HEREEE imshow("small", bigImg(myROI));
-		Mat rearVehicule = bigImg(myROI);
-		IplImage * ipl_img = new IplImage(rearVehicule);
-		textDetection(ipl_img, 1);
+		vector<vector<Point> > squares;
+		Mat matImg = bigImg(myROI);
+		
+		//Mat rearVehicule = bigImg(myROI);
+		//SOBEL
+		 /*Mat grad_x, grad_y;
+		Mat abs_grad_x, abs_grad_y;
+		int scale = 1;
+		int delta = 0;
+		int ddepth = CV_16S;
+		Mat grad;
+		/// Gradient X
+		//Scharr( image, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
+		Sobel( rearVehicule, grad_x, ddepth, 0, 0, 3, scale, delta, BORDER_DEFAULT );
+		convertScaleAbs( grad_x, abs_grad_x );
+		namedWindow("ImageSobelGx", CV_WINDOW_AUTOSIZE );
+		imshow( "ImageSobelGx", abs_grad_x );
+		*/
+		//HOUGH
+		/*vector<Vec4i> lines;
+		Canny(rearVehicule, rearVehicule, 100, 100,5);//thresh, 5);
+	    HoughLinesP( rearVehicule, lines, 1, CV_PI/180, 80, 30, 10 );
+	    for( size_t i = 0; i < lines.size(); i++ )
+	    {
+	        line( rearVehicule, Point(lines[i][0], lines[i][1]),
+	            Point(lines[i][2], lines[i][3]), Scalar(0,0,255), 3, 8 );
+	    }
+	    namedWindow("ImageSobelGx", CV_WINDOW_AUTOSIZE );
+		imshow( "ImageSobelGx", rearVehicule );
+		*/
+		//findSquares(rearVehicule, squares);
+		//drawSquares(rearVehicule, squares);
+		//imshow("small", bigImg(myROI));
+		IplImage* rearVehicule = new IplImage(bigImg(myROI));
+		IplImage *cropSource = cvCreateImage(cvSize(width,height), rearVehicule->depth, rearVehicule->nChannels);
+        
+        cvCopy(rearVehicule, cropSource, NULL);
+        cv::Mat img_mat(rearVehicule);
+        cv::Mat img_mat_out(rearVehicule);
+        cv::Mat in[] = {img_mat, img_mat, img_mat};
+        cv::merge(in, 3, img_mat_out);
+        Mat intact = matImg.clone();
+        float min_thresh=0.85;
+        float max_thresh=1.15;
+        //left to right
+        for(int i2=0;i2<matImg.rows;i2++)
+        {
+        	//int corBorda = matImg.at<unsigned char>(i2,0);
+        	for(int j=0; j<matImg.cols-1;j++)
+        	{
+        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
+        		int pixelVizinho = matImg.at<unsigned char>(i2,j+1);
+        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
+        				matImg.at<unsigned char>(i2,j)=0;
+        		else
+        			j=matImg.cols-1;
+        	}
+        }
+
+        //right to left
+        for(int i2=0;i2<matImg.rows;i2++)
+        {
+        	//int corBorda = matImg.at<unsigned char>(i2,matImg.cols-1);
+        	for(int j=matImg.cols-1; j>1;j--)
+        	{
+        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
+        		int pixelVizinho = matImg.at<unsigned char>(i2,j-1);
+        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
+        				matImg.at<unsigned char>(i2,j)=0;
+        		else
+        			j=0;
+        	}
+        }
+
+         //up to down
+        for(int j=0; j<matImg.cols;j++)
+        {
+        	//int corBorda = matImg.at<unsigned char>(0,j);
+        	for(int i2=0;i2<matImg.rows-1;i2++)
+        	{
+        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
+        		int pixelVizinho = matImg.at<unsigned char>(i2+1,j);
+        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
+        				matImg.at<unsigned char>(i2,j)=0;
+        		else
+        			i2=matImg.rows-1;
+        	}
+        }
+
+        //bottom up
+        for(int j=0; j<matImg.cols;j++)
+        {
+        	//int corBorda = matImg.at<unsigned char>(0,j);
+        	for(int i2=matImg.rows-1;i2>1;i2--)
+        	{
+        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
+        		int pixelVizinho = matImg.at<unsigned char>(i2-1,j);
+        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
+        				matImg.at<unsigned char>(i2,j)=0;
+        		else
+        			i2=0;
+        	}
+        }
+
+        //IplImage* ipl_img = new IplImage(img_mat_out);
+		//textDetection(ipl_img, 1);
+		//cvShowImage("small", rearVehicule);
+		findSquares(matImg, squares);
+		drawSquares(intact, squares);
+
+		
+		//namedWindow("GENIOUS", CV_WINDOW_AUTOSIZE);
+		//imshow("GENIOUS",matImg);
 		}	
-	//HEREEE imshow("small2", src);
+	imshow("small2", bigImg);
 	//waitKey();
 
 }

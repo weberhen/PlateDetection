@@ -3,6 +3,7 @@
 
 #include "TextDetection.hpp"
 #include "opencv2/opencv.hpp"
+#include "SquareDetection.hpp"
 #include "MathFunctions.hpp"
 #include "ImageManipulation.hpp"
 #include <iostream>
@@ -22,7 +23,7 @@ typedef struct asphaltInfo{
 	int porcentageAsphalt;
 } structAsphaltInfo;
 
-
+void drawSquares2( IplImage* img, CvSeq* squares );
 Mat EraseLine(Mat img, int segmentSize, int i, int j);
 Mat SurroundCar(Mat src,int i,int j,int segmentSize);
 Mat CannyThreshold(Mat src, int lowThreshold);

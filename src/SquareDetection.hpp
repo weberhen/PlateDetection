@@ -4,6 +4,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/opencv.hpp"
 
 #include <iostream>
 #include <math.h>
@@ -15,7 +16,7 @@ using namespace std;
 
 
 double angle( Point pt1, Point pt2, Point pt0 );
-void findSquares( const Mat& image, vector<vector<Point> >& squares );
+int findSquares( const Mat& image, vector<vector<Point> >& squares );
 void drawSquares( Mat& image, const vector<vector<Point> >& squares );
 
 

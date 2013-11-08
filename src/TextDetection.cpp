@@ -41,7 +41,7 @@
 #include <utility>
 #include <algorithm>
 #include <vector>
-#include "TextDetection.hpp"
+#include <TextDetection.hpp>
 
 #define PI 3.14159265
 
@@ -230,7 +230,7 @@ void renderChainsWithBoxes (IplImage * SWTImage,
     IplImage * outTemp =
             cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_32F, 1 );
 
-    std::cout << componentsRed.size() << " components after chaining" << std::endl;
+    //std::cout << componentsRed.size() << " components after chaining" << std::endl;
     renderComponents(SWTImage,componentsRed,outTemp);
     std::vector<std::pair<CvPoint,CvPoint> > bb;
     bb = findBoundingBoxes(components, chains, compBB, outTemp);
@@ -274,7 +274,7 @@ void renderChains (IplImage * SWTImage,
             componentsRed.push_back(components[i]);
         }
     }
-    std::cout << componentsRed.size() << " components after chaining" << std::endl;
+    //std::cout << componentsRed.size() << " components after chaining" << std::endl;
     IplImage * outTemp =
             cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_32F, 1 );
     renderComponents(SWTImage,componentsRed,outTemp);
@@ -285,7 +285,7 @@ void renderChains (IplImage * SWTImage,
 IplImage * textDetection (IplImage * input, bool dark_on_light)
 {
     assert ( input->depth == IPL_DEPTH_8U );
-    //assert ( input->nChannels == 3 );
+    assert ( input->nChannels == 3 );
     //std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
     // Convert to grayscale
     IplImage * grayImage =
@@ -354,29 +354,15 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * output3 =
             cvCreateImage ( cvGetSize ( input ), 8U, 3 );
     renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
+    //cvSaveImage ( "components.png",output3);
+    //cvReleaseImage ( &output3 );
+
+
     if(!validComponents.empty())
     {
-        int p[3];
-        p[0] = CV_IMWRITE_JPEG_QUALITY;
-        p[1] = 100;
-        p[2] = 0;
-        char* name_with_extension = (char*)malloc(sizeof(char)*60); 
-        strcpy(name_with_extension, "/home/pi/Sandbox/ShadowDetector/bin");
-        char* buffer = (char*)malloc(sizeof(char)*60); 
-        sprintf(buffer, "%d",clock());
-        strcat(name_with_extension, buffer); 
-        strcat(name_with_extension, ".png"); 
-        //cvSaveImage(name_with_extension, input,p);
-        cvReleaseImage ( &gradientX );
-        cvReleaseImage ( &gradientY );
-        cvReleaseImage ( &SWTImage );
-        cvReleaseImage ( &edgeImage );
-        cvReleaseImage ( &output3 );
-        return input;
+        cv::namedWindow("ImageSobelGx", CV_WINDOW_AUTOSIZE );
+        cvShowImage("ImageSobelGx",output3);
     }
-    //cvSaveImage ( "components.png",output3);
-    
-    //cvReleaseImage ( &output3 );
 
     // Make chains of components
     std::vector<Chain> chains;
@@ -386,8 +372,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
     renderChains ( SWTImage, validComponents, chains, output4 );
     //cvSaveImage ( "text.png", output4);
-    cv::namedWindow("small",CV_WINDOW_AUTOSIZE);
-    cvShowImage("small", output4);
+
     IplImage * output5 =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
     cvCvtColor (output4, output5, CV_GRAY2RGB);
@@ -400,6 +385,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     cvReleaseImage ( &gradientY );
     cvReleaseImage ( &SWTImage );
     cvReleaseImage ( &edgeImage );
+    
     return output5;
 }
 
@@ -576,7 +562,7 @@ findLegallyConnectedComponents (IplImage * SWTImage,
 
         std::vector<std::vector<Point2d> > components;
         components.reserve(num_comp);
-        std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
+        //std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
         for (int j = 0; j < num_comp; j++) {
             std::vector<Point2d> tmp;
             components.push_back( tmp );
@@ -642,7 +628,7 @@ findLegallyConnectedComponentsRAY (IplImage * SWTImage,
 
         std::vector<std::vector<Point2d> > components;
         components.reserve(num_comp);
-        std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
+        //std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
         for (int j = 0; j < num_comp; j++) {
             std::vector<Point2d> tmp;
             components.push_back( tmp );
@@ -843,7 +829,7 @@ void filterComponents(IplImage * SWTImage,
         validComponents.reserve(tempComp.size());
         compBB.reserve(tempComp.size());
 
-        std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
+        //std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
 }
 
 bool sharesOneEnd( Chain c0, Chain c1) {
@@ -939,7 +925,7 @@ std::vector<Chain> makeChains( IplImage * colorImage,
             }
         }
     }
-    std::cout << chains.size() << " eligible pairs" << std::endl;
+    //std::cout << chains.size() << " eligible pairs" << std::endl;
     std::sort(chains.begin(), chains.end(), &chainSortDist);
 
     std::cerr << std::endl;
@@ -959,11 +945,11 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                         if (chains[i].p == chains[j].p) {
                             if (acos(chains[i].direction.x * -chains[j].direction.x + chains[i].direction.y * -chains[j].direction.y) < strictness) {
                                   /*      if (chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
-                                            std::cout << "CRAZY ERROR" << std::endl;
+                                            //std::cout << "CRAZY ERROR" << std::endl;
                                         } else if (chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
-                                            std::cout << "CRAZY ERROR" << std::endl;
+                                            //std::cout << "CRAZY ERROR" << std::endl;
                                         } else if (chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
-                                            std::cout << "CRAZY ERROR" << std::endl;
+                                            //std::cout << "CRAZY ERROR" << std::endl;
                                         }
                                         std::cerr << 1 <<std::endl;
 
@@ -1000,11 +986,11 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                             if (acos(chains[i].direction.x * chains[j].direction.x + chains[i].direction.y * chains[j].direction.y) < strictness) {
 /*
                                 if (chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 } else if (chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 } else if (chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 }
                                 std::cerr << 2 <<std::endl;
 
@@ -1043,11 +1029,11 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                         } else if (chains[i].q == chains[j].p) {
                             if (acos(chains[i].direction.x * chains[j].direction.x + chains[i].direction.y * chains[j].direction.y) < strictness) {
      /*                           if (chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 } else if (chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 } else if (chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 }
                                 std::cerr << 3 <<std::endl;
 
@@ -1085,11 +1071,11 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                         } else if (chains[i].q == chains[j].q) {
                             if (acos(chains[i].direction.x * -chains[j].direction.x + chains[i].direction.y * -chains[j].direction.y) < strictness) {
                      /*           if (chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 } else if (chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 } else if (chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
-                                    std::cout << "CRAZY ERROR" << std::endl;
+                                    //std::cout << "CRAZY ERROR" << std::endl;
                                 }
                                 std::cerr << 4 <<std::endl;
                                 std::cerr << chains[i].p << " " << chains[i].q << std::endl;
@@ -1142,6 +1128,6 @@ std::vector<Chain> makeChains( IplImage * colorImage,
         }
     }
     chains = newchains;
-    std::cout << chains.size() << " chains after merging" << std::endl;
+    //std::cout << chains.size() << " chains after merging" << std::endl;
     return chains;
 }

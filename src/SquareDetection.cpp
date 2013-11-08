@@ -19,9 +19,12 @@ double angle( Point pt1, Point pt2, Point pt0 )
     return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
+
+
+
 // returns sequence of squares detected on the image.
 // the sequence is stored in the specified memory storage
-void findSquares( const Mat& image, vector<vector<Point> >& squares )
+int findSquares( const Mat& image, vector<vector<Point> >& squares )
 {
     squares.clear();
     
@@ -47,10 +50,12 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
             {
                 // apply Canny. Take the upper threshold from slider
                 // and set the lower to 0 (which forces edges merging)
-                Canny(gray0, gray, 0, thresh, 5);
+                Canny(gray0, gray, 100, 100,5);//thresh, 5);
                 // dilate canny output to remove potential
                 // holes between edge segments
-                dilate(gray, gray, Mat(), Point(-1,-1));
+                //dilate(gray, gray, Mat(), Point(-1,-1));
+                //namedWindow("canny",CV_WINDOW_AUTOSIZE);
+                //imshow("canny",gray);
             }
             else
             {
@@ -58,7 +63,6 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
                 //     tgray(x,y) = gray(x,y) < (l+1)*255/N ? 255 : 0
                 gray = gray0 >= (l+1)*255/N;
             }
-
             // find contours and store them all as a list
             findContours(gray, contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
@@ -78,7 +82,7 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
                 // area may be positive or negative - in accordance with the
                 // contour orientation
                 if( approx.size() == 4 &&
-                    fabs(contourArea(Mat(approx))) > 1000 &&
+                    //fabs(contourArea(Mat(approx))) > 1000 &&
                     isContourConvex(Mat(approx)) )
                 {
                     double maxCosine = 0;
@@ -103,16 +107,46 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
 
 
 // the function draws all the squares in the image
-void drawSquares( Mat& image, const vector<vector<Point> >& squares )
+void drawSquares( Mat& img, const vector<vector<Point> >& squares )
 {
+    int width = 0, height = 0;
+    int max_x=0, min_x=99999,max_y=0,min_y=99999;
     for( size_t i = 0; i < squares.size(); i++ )
     {
-        const Point* p = &squares[i][0];
+        const Point* pt = &squares[i][0];
         int n = (int)squares[i].size();
-        polylines(image, &p, &n, 1, true, Scalar(0,255,0), 3, CV_AA);
-    }
+        //polylines(image, &p, &n, 1, true, Scalar(0,255,0), 3, CV_AA);
 
-    imshow(wndname, image);
+        for(int j=0;j<4;j++)
+            {
+                if(pt[j].x > max_x)
+                    max_x=pt[j].x;
+                if(pt[j].x < min_x)
+                    min_x=pt[j].x;
+                if(pt[j].y > max_y)
+                    max_y=pt[j].y;
+                if(pt[j].y < min_y)
+                    min_y=pt[j].y;
+            }
+    }
+    width = max_x-min_x;
+    height = max_y-min_y;
+    if((height < width/3) && (height < img.rows/2) && (width < img.cols/2) && (height < width/2) && (min_x<img.cols))
+    {
+       //printf("passed %d %d %d %d\n", min_x,min_y,max_x-min_x,max_y-min_y);
+        
+        cv::Rect myROI(min_x,min_y,max_x-min_x,max_y-min_y);
+        
+        Mat matImg = img(myROI);
+        namedWindow("WOW",CV_WINDOW_AUTOSIZE);
+        Size biggerSize(matImg.cols*2,matImg.rows*2);
+        Mat biggerImg = Mat::zeros( biggerSize, matImg.type());
+    resize(matImg, matImg, biggerImg.size(),0,0,INTER_CUBIC);
+        imshow("WOW",matImg);
+        // cropped image
+        
+    }
+    //imshow(wndname, image);
 }
 
 
