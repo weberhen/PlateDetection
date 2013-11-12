@@ -11,84 +11,6 @@ int kernel_size = 3;
 String window_name = "Edge Map";
 CvPoint pt[4];
 
-/////////////////////////////////////////////////////////////////
-
-void drawSquares2( IplImage* img, CvSeq* squares )
-{
-    CvSeqReader reader;
-    IplImage* cpy = cvCloneImage( img );    
-    
-    // initialize reader of the sequence
-    cvStartReadSeq( squares, &reader, 0 );
-    
-    int width = 0, height = 0;
-    printf("%d squares found\n", squares->total/4);
-    // read 4 sequence elements at a time (all vertices of a square)
-    for(int i = 0; i < squares->total; i += 4 )
-    {
-        char* name_with_extension = (char*)malloc(sizeof(char)*60); 
-        CvPoint* rect = pt;
-        int count = 4;
-        int max_x=0, min_x=99999,max_y=0,min_y=99999;
-        // read 4 vertices
-        memcpy( pt, reader.ptr, squares->elem_size );
-        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
-        memcpy( pt + 1, reader.ptr, squares->elem_size );
-        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
-        memcpy( pt + 2, reader.ptr, squares->elem_size );
-        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
-        memcpy( pt + 3, reader.ptr, squares->elem_size );
-        CV_NEXT_SEQ_ELEM( squares->elem_size, reader );
-        //if(true)
-        {
-            //printf("x:%d y:%d\n",pt[0].x,pt[0].y);
-            //printf("x:%d y:%d\n",pt[1].x,pt[1].y);
-            //printf("x:%d y:%d\n",pt[2].x,pt[2].y);
-            //printf("x:%d y:%d\n--------\n",pt[3].x,pt[3].y);
-            //printf("parada 12\n");
-            for(int j=0;j<4;j++)
-            {
-                if(pt[j].x > max_x)
-                    max_x=pt[j].x;
-                if(pt[j].x < min_x)
-                    min_x=pt[j].x;
-                if(pt[j].y > max_y)
-                    max_y=pt[j].y;
-                if(pt[j].y < min_y)
-                    min_y=pt[j].y;
-            }
-            width = max_x-min_x;
-            height = max_y-min_y;
-            printf("width:%d height:%d\n",width,height);
-
-            if((height < width/3) && (height < img->height/2) && (width < img->width/2) && (height < width/2))
-            {
-                printf("passed\n");
-                cvSetImageROI(img, cvRect(min_x,min_y,max_x-min_x,max_y-min_y));
-                // cropped image
-                IplImage *cropSource = cvCreateImage(cvSize(width,height), img->depth, img->nChannels);
-                // copy
-                //printf("img - width:%d height:%d \n",img->width, img->height);
-                //printf("cropSource - width:%d height:%d \n",cropSource->width, cropSource->height);
-                
-                namedWindow("GENIOUS",CV_WINDOW_AUTOSIZE);
-                cvShowImage("GENIOUS",cropSource);
-                
-                
-            }
-        }
-        // draw the square as a closed polyline 
-        //cvPolyLine( cpy, &rect, &count, 1, 1, CV_RGB(0,255,0), 3, 8,0 );
-    }
-    
-    // show the resultant image
-    //cvShowImage("image",cpy );
-    cvReleaseImage( &cpy );
-}
-
-////////////////////////////////////////////////////////////////
-
-
 
 /*
  * \param img the image that will wave one line erased
@@ -296,11 +218,28 @@ vector<Vec4i> mergeLines(Mat src)
 	return lines;
 }
 
+Mat TransitionToShadow(Mat input, int uBoundary)
+{
+
+	Mat output = Mat::zeros(input.size(),input.type());
+	for(int i=input.rows-1;i>0;i--){
+		for(int j=0;j<input.cols;j++)
+		{
+			int currentPixel = input.at<unsigned char>(i, j);
+			int downNeighbor = input.at<unsigned char>(i+1,j);
+
+			if((currentPixel<uBoundary*0.8)&&(downNeighbor>currentPixel))
+				output.at<unsigned char>(i,j)=255;
+		}
+	}
+	//imwrite( "transition.png", output);
+	//waitKey();
+	return output;
+}
+
 void SearchForShadow(Mat src,int uBoundary)
 {
 	Mat bigImg(src);
-	// HEREEE namedWindow("small", CV_WINDOW_AUTOSIZE);
-	//HEREEE namedWindow("small2", CV_WINDOW_AUTOSIZE);
 	Size smallSize(src.cols*0.3,src.rows*0.3);
 	int segmentSize=0;
 	Mat smallerImg = Mat::zeros( smallSize, src.type());
@@ -308,18 +247,8 @@ void SearchForShadow(Mat src,int uBoundary)
 	Mat shadows = Mat::zeros(smallSize,src.type());
 	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
 	resize(src, src, smallerImg.size(),0,0,INTER_CUBIC);
-	//imshow("small",src);
 
-	for(int i=smallerImg.rows-1;i>0;i--){
-		for(int j=0;j<smallerImg.cols;j++)
-		{
-			int currentPixel = smallerImg.at<unsigned char>(i, j);
-			int downNeighbor = smallerImg.at<unsigned char>(i+1,j);
-
-			if((currentPixel<uBoundary*0.8)&&(downNeighbor>currentPixel))
-				dst.at<unsigned char>(i,j)=255;
-		}
-	}
+	dst = TransitionToShadow(smallerImg, uBoundary);
 
 	for(int i=smallerImg.rows-2;i>1;i--){
 		for(int j=1;j<smallerImg.cols-1;j++)

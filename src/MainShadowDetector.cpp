@@ -42,15 +42,7 @@ int main(int argc, char** argv)
 			_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
 			alreadyCalled=1;
 		}
-//		cout<<"Median is: "<<_structAsphaltInfo.median<<endl;
-	
 		SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
-	//Stop the clock and show FPS
-//	time(&end);
-//	++counter;
-//	double sec=difftime(end,start);
-//	double fps=counter/sec;
-//	printf("\n time: %lf",sec);
         waitKey(20);
     }
     stream.release();
