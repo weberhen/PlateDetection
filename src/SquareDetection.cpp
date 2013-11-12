@@ -141,7 +141,7 @@ void drawSquares( Mat& img, const vector<vector<Point> >& squares )
         namedWindow("WOW",CV_WINDOW_AUTOSIZE);
         Size biggerSize(matImg.cols*2,matImg.rows*2);
         Mat biggerImg = Mat::zeros( biggerSize, matImg.type());
-    resize(matImg, matImg, biggerImg.size(),0,0,INTER_CUBIC);
+        resize(matImg, matImg, biggerImg.size(),0,0,INTER_CUBIC);
         imshow("WOW",matImg);
         // cropped image
         

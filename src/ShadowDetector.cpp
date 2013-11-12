@@ -261,157 +261,122 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void SearchForShadow(Mat src,int uBoundary)
+void IsolatePlate(Mat input)
 {
-	Mat bigImg(src);
-	Size smallSize(src.cols*0.3,src.rows*0.3);
-	
-	Mat smallerImg = Mat::zeros( smallSize, src.type());
-	Mat dst = Mat::zeros(smallSize,src.type());
-	Mat shadows = Mat::zeros(smallSize,src.type());
-	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
-	resize(src, src, smallerImg.size(),0,0,INTER_CUBIC);
+	float min_thresh=0.89;
+    float max_thresh=1.1;
+	//left to right
+    for(int i2=0;i2<input.rows;i2++)
+    {
+    	//int corBorda = input.at<unsigned char>(i2,0);
+    	for(int j=0; j<input.cols-1;j++)
+    	{
+    		int corPixelAtual = input.at<unsigned char>(i2,j);
+    		int pixelVizinho = input.at<unsigned char>(i2,j+1);
+    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
+    		{
+    			input.at<unsigned char>(i2,j)=0;
+    		}
+    			
+    		else
+    			j=input.cols-1;
+    	}
+    }
+    
+    //right to left
+    for(int i2=0;i2<input.rows;i2++)
+    {
+    	//int corBorda = input.at<unsigned char>(i2,input.cols-1);
+    	for(int j=input.cols-1; j>1;j--)
+    	{
+    		int corPixelAtual = input.at<unsigned char>(i2,j);
+    		int pixelVizinho = input.at<unsigned char>(i2,j-1);
+    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
+    				input.at<unsigned char>(i2,j)=0;
+    		else
+    			j=0;
+    	}
+    }
+     //up to down
+    for(int j=0; j<input.cols;j++)
+    {
+    	//int corBorda = input.at<unsigned char>(0,j);
+    	for(int i2=0;i2<input.rows-1;i2++)
+    	{
+    		int corPixelAtual = input.at<unsigned char>(i2,j);
+    		int pixelVizinho = input.at<unsigned char>(i2+1,j);
+    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
+    				input.at<unsigned char>(i2,j)=0;
+    		else
+    			i2=input.rows-1;
+    	}
+    }
+    //bottom up
+    for(int j=0; j<input.cols;j++)
+    {
+    	//int corBorda = input.at<unsigned char>(0,j);
+    	for(int i2=input.rows-1;i2>1;i2--)
+    	{
+    		int corPixelAtual = input.at<unsigned char>(i2,j);
+    		int pixelVizinho = input.at<unsigned char>(i2-1,j);
+    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
+    				input.at<unsigned char>(i2,j)=0;
+    		else
+    			i2=0;
+    	}
+    }
+        
+}
 
-	dst = TransitionToShadow(smallerImg, uBoundary);
-
-	shadows = ExludeFalseShadowPixels(dst, smallSize);
-
-	vector<Vec4i> lines;
-
-	lines = mergeLines(shadows);
-		
-	//imshow("small",shadows);
-	//waitKey();		
-	lines = excludeDuplicateShadows(lines);
-	//for each shadow that was identified, create the Region of Interest (ROI)
-	for(int i =0;i<lines.size();i++)
+void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
+{
+	Mat intact;
+	for(unsigned int i =0;i<lines.size();i++)
 	{
 		Vec4i l = lines[i];
-		//SurroundCar(row, col, size)
-		int x = (l[0])/0.3;
-		int y = (l[3]/3)/0.3;
-		int width = (l[2]-l[0])/0.3;
-		int height = l[3]/0.3-y;
+		int x = (l[0])/reductionFactor;
+		int y = (l[3]/3)/reductionFactor;
+		int width = (l[2]-l[0])/reductionFactor;
+		int height = l[3]/reductionFactor-y;
 		width=width*0.85; //reduces the width's ROI in 15% 
 		x=x+width*0.15;   //reduces the x axis of the ROI in 15% 
 		height=height*0.75; //discard the shadow of the vehicule
-		//src = SurroundCar(src,l[3],l[2],l[2]-l[0]);
-		//cv::Rect(x, y, width, height)
+		//cout<<"x: "<<x<<"y: "<<y<<"width: "<<width<<"height: "<<height<<endl;
 		cv::Rect myROI(x, y, width, height);
+		
 		vector<vector<Point> > squares;
-		Mat matImg = bigImg(myROI);
 		
-		//Mat rearVehicule = bigImg(myROI);
-		//SOBEL
-		 /*Mat grad_x, grad_y;
-		Mat abs_grad_x, abs_grad_y;
-		int scale = 1;
-		int delta = 0;
-		int ddepth = CV_16S;
-		Mat grad;
-		/// Gradient X
-		//Scharr( image, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
-		Sobel( rearVehicule, grad_x, ddepth, 0, 0, 3, scale, delta, BORDER_DEFAULT );
-		convertScaleAbs( grad_x, abs_grad_x );
-		namedWindow("ImageSobelGx", CV_WINDOW_AUTOSIZE );
-		imshow( "ImageSobelGx", abs_grad_x );
-		*/
-		//HOUGH
-		/*vector<Vec4i> lines;
-		Canny(rearVehicule, rearVehicule, 100, 100,5);//thresh, 5);
-	    HoughLinesP( rearVehicule, lines, 1, CV_PI/180, 80, 30, 10 );
-	    for( size_t i = 0; i < lines.size(); i++ )
-	    {
-	        line( rearVehicule, Point(lines[i][0], lines[i][1]),
-	            Point(lines[i][2], lines[i][3]), Scalar(0,0,255), 3, 8 );
-	    }
-	    namedWindow("ImageSobelGx", CV_WINDOW_AUTOSIZE );
-		imshow( "ImageSobelGx", rearVehicule );
-		*/
-		//findSquares(rearVehicule, squares);
-		//drawSquares(rearVehicule, squares);
-		//imshow("small", bigImg(myROI));
-		IplImage* rearVehicule = new IplImage(bigImg(myROI));
-		IplImage *cropSource = cvCreateImage(cvSize(width,height), rearVehicule->depth, rearVehicule->nChannels);
+		Mat matImg = input(myROI);
+		
+        intact = matImg.clone();
         
-        cvCopy(rearVehicule, cropSource, NULL);
-        cv::Mat img_mat(rearVehicule);
-        cv::Mat img_mat_out(rearVehicule);
-        cv::Mat in[] = {img_mat, img_mat, img_mat};
-        cv::merge(in, 3, img_mat_out);
-        Mat intact = matImg.clone();
-        float min_thresh=0.85;
-        float max_thresh=1.15;
-        //left to right
-        for(int i2=0;i2<matImg.rows;i2++)
-        {
-        	//int corBorda = matImg.at<unsigned char>(i2,0);
-        	for(int j=0; j<matImg.cols-1;j++)
-        	{
-        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
-        		int pixelVizinho = matImg.at<unsigned char>(i2,j+1);
-        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
-        				matImg.at<unsigned char>(i2,j)=0;
-        		else
-        			j=matImg.cols-1;
-        	}
-        }
+        IsolatePlate(matImg);
+       	
+       	findSquares(matImg, squares);
+        
+		drawSquares(matImg, squares);
+	}
+}
 
-        //right to left
-        for(int i2=0;i2<matImg.rows;i2++)
-        {
-        	//int corBorda = matImg.at<unsigned char>(i2,matImg.cols-1);
-        	for(int j=matImg.cols-1; j>1;j--)
-        	{
-        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
-        		int pixelVizinho = matImg.at<unsigned char>(i2,j-1);
-        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
-        				matImg.at<unsigned char>(i2,j)=0;
-        		else
-        			j=0;
-        	}
-        }
+void SearchForShadow(Mat src,int uBoundary)
+{
+	Mat bigImg(src);
+	float reductionFactor = 0.3;
+	Size smallSize(src.cols*reductionFactor,src.rows*reductionFactor);
+	Mat smallerImg = Mat::zeros( smallSize, src.type());
+	//make a copy of src to smallerImg reduced to 30% of the original size
+	resize(src,smallerImg,smallerImg.size(),0,0,INTER_CUBIC);
+	
+	smallerImg = TransitionToShadow(smallerImg, uBoundary);
 
-         //up to down
-        for(int j=0; j<matImg.cols;j++)
-        {
-        	//int corBorda = matImg.at<unsigned char>(0,j);
-        	for(int i2=0;i2<matImg.rows-1;i2++)
-        	{
-        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
-        		int pixelVizinho = matImg.at<unsigned char>(i2+1,j);
-        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
-        				matImg.at<unsigned char>(i2,j)=0;
-        		else
-        			i2=matImg.rows-1;
-        	}
-        }
+	smallerImg = ExludeFalseShadowPixels(smallerImg, smallSize);
 
-        //bottom up
-        for(int j=0; j<matImg.cols;j++)
-        {
-        	//int corBorda = matImg.at<unsigned char>(0,j);
-        	for(int i2=matImg.rows-1;i2>1;i2--)
-        	{
-        		int corPixelAtual = matImg.at<unsigned char>(i2,j);
-        		int pixelVizinho = matImg.at<unsigned char>(i2-1,j);
-        		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))//&&(matImg.at<unsigned char>(i2,j) < matImg.at<unsigned char>(i2,0)*1.2))
-        				matImg.at<unsigned char>(i2,j)=0;
-        		else
-        			i2=0;
-        	}
-        }
-
-        //IplImage* ipl_img = new IplImage(img_mat_out);
-		//textDetection(ipl_img, 1);
-		//cvShowImage("small", rearVehicule);
-		findSquares(matImg, squares);
-		drawSquares(intact, squares);
-
-		
-		//namedWindow("GENIOUS", CV_WINDOW_AUTOSIZE);
-		//imshow("GENIOUS",matImg);
-		}	
+	vector<Vec4i> lines = mergeLines(smallerImg);
+	
+	lines = excludeDuplicateShadows(lines);
+	
+	CreateROIOfShadow(lines, bigImg, reductionFactor);
+	
 	imshow("small2", bigImg);
 	//waitKey();
 

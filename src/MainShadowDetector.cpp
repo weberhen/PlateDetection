@@ -4,7 +4,7 @@
 int main(int argc, char** argv)
 {
 	Mat src_gray, src;
-	bool debugMode = true;
+	bool debugMode = false;
 	structAsphaltInfo _structAsphaltInfo;
 
 	if(!debugMode)
@@ -42,6 +42,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
+		namedWindow("Small3",WINDOW_AUTOSIZE);
 		src = imread("capturaModificada.png",1);
 		cvtColor(src,src_gray,CV_BGR2GRAY);
 		_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
@@ -50,6 +51,13 @@ int main(int argc, char** argv)
 		Size size(src.cols,src.rows);
 		Mat exludeFalseShadowPixels = ExludeFalseShadowPixels(transitionToShadow, size);
 		imwrite("ExludeFalseShadowPixels.png",exludeFalseShadowPixels);
+		vector<Vec4i> lines = mergeLines(exludeFalseShadowPixels);
+		lines = excludeDuplicateShadows(lines);
+		Mat original_gray;
+		//PS: to save picture from ROI, change drawSquares(matImg, squares); to drawSquares(input, squares); at line 357 of ShadowDetector.cpp
+		CreateROIOfShadow(lines, src_gray,1);
+		imwrite("createROIOfShadow.png",src_gray);
+
 	}
 
 	
