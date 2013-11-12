@@ -232,16 +232,40 @@ Mat TransitionToShadow(Mat input, int uBoundary)
 				output.at<unsigned char>(i,j)=255;
 		}
 	}
-	//imwrite( "transition.png", output);
-	//waitKey();
 	return output;
+}
+
+Mat ExludeFalseShadowPixels(Mat input, Size size)
+{
+	Mat shadows = Mat::zeros(size,input.type());
+	int segmentSize=0;
+	for(int i=input.rows-2;i>1;i--){
+		for(int j=1;j<input.cols-1;j++)
+		{
+			if(PixelBelongToSegment(input,i,j))
+			{
+				segmentSize++;
+				shadows.at<unsigned char>(i,j)=255;
+			}
+			else 
+			{
+				if(segmentSize<(0.10*input.cols)
+				||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+					EraseLine(shadows, segmentSize, i, j);
+				segmentSize=0;
+			}
+		}
+		EraseLine(shadows, segmentSize, i, input.cols-2);
+		segmentSize=0;
+	}
+	return shadows;
 }
 
 void SearchForShadow(Mat src,int uBoundary)
 {
 	Mat bigImg(src);
 	Size smallSize(src.cols*0.3,src.rows*0.3);
-	int segmentSize=0;
+	
 	Mat smallerImg = Mat::zeros( smallSize, src.type());
 	Mat dst = Mat::zeros(smallSize,src.type());
 	Mat shadows = Mat::zeros(smallSize,src.type());
@@ -250,25 +274,8 @@ void SearchForShadow(Mat src,int uBoundary)
 
 	dst = TransitionToShadow(smallerImg, uBoundary);
 
-	for(int i=smallerImg.rows-2;i>1;i--){
-		for(int j=1;j<smallerImg.cols-1;j++)
-		{
-			if(PixelBelongToSegment(dst,i,j))
-			{
-				segmentSize++;
-				shadows.at<unsigned char>(i,j)=255;
-			}
-			else 
-			{
-				if(segmentSize<(0.10*smallerImg.cols)
-				||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
-					EraseLine(shadows, segmentSize, i, j);
-				segmentSize=0;
-			}
-		}
-		EraseLine(shadows, segmentSize, i, smallerImg.cols-2);
-		segmentSize=0;
-	}
+	shadows = ExludeFalseShadowPixels(dst, smallSize);
+
 	vector<Vec4i> lines;
 
 	lines = mergeLines(shadows);
