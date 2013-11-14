@@ -42,6 +42,12 @@ int main(int argc, char** argv)
 	}
 	else
 	{
+		Mat inter = imread("BIG_29000000.png",1);
+        cvtColor(inter,inter,CV_BGR2GRAY);
+        IsolatePlate(inter);
+       	imwrite("BIG_preta.png",inter);
+       	return 0;
+
 		namedWindow("Small3",WINDOW_AUTOSIZE);
 		src = imread("capturaModificada.png",1);
 		cvtColor(src,src_gray,CV_BGR2GRAY);
@@ -60,7 +66,6 @@ int main(int argc, char** argv)
 
 	}
 
-	
 	return 0;
 
 

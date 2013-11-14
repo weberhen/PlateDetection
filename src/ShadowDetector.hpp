@@ -5,6 +5,7 @@
 #include "SquareDetection.hpp"
 #include "MathFunctions.hpp"
 #include "ImageManipulation.hpp"
+#include "RobustMatcher.cpp"
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>

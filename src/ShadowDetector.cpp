@@ -237,6 +237,7 @@ Mat TransitionToShadow(Mat input, int uBoundary)
 
 Mat ExludeFalseShadowPixels(Mat input, Size size)
 {
+	
 	Mat shadows = Mat::zeros(size,input.type());
 	int segmentSize=0;
 	for(int i=input.rows-2;i>1;i--){
@@ -263,68 +264,100 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 
 void IsolatePlate(Mat input)
 {
+	Mat lr, rl, bu, td;
+	lr = input.clone();
+	rl = input.clone();
+	bu = input.clone();
+	td = input.clone();
+	//namedWindow("ISOLATE", WINDOW_AUTOSIZE);
 	float min_thresh=0.89;
     float max_thresh=1.1;
-	//left to right
-    for(int i2=0;i2<input.rows;i2++)
-    {
-    	//int corBorda = input.at<unsigned char>(i2,0);
-    	for(int j=0; j<input.cols-1;j++)
-    	{
-    		int corPixelAtual = input.at<unsigned char>(i2,j);
-    		int pixelVizinho = input.at<unsigned char>(i2,j+1);
-    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    		{
-    			input.at<unsigned char>(i2,j)=0;
-    		}
-    			
-    		else
-    			j=input.cols-1;
-    	}
-    }
-    
-    //right to left
-    for(int i2=0;i2<input.rows;i2++)
-    {
-    	//int corBorda = input.at<unsigned char>(i2,input.cols-1);
-    	for(int j=input.cols-1; j>1;j--)
-    	{
-    		int corPixelAtual = input.at<unsigned char>(i2,j);
-    		int pixelVizinho = input.at<unsigned char>(i2,j-1);
-    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    				input.at<unsigned char>(i2,j)=0;
-    		else
-    			j=0;
-    	}
-    }
      //up to down
     for(int j=0; j<input.cols;j++)
     {
     	//int corBorda = input.at<unsigned char>(0,j);
     	for(int i2=0;i2<input.rows-1;i2++)
     	{
-    		int corPixelAtual = input.at<unsigned char>(i2,j);
-    		int pixelVizinho = input.at<unsigned char>(i2+1,j);
+    		int corPixelAtual = td.at<unsigned char>(i2,j);
+    		int pixelVizinho = td.at<unsigned char>(i2+1,j);
     		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    				input.at<unsigned char>(i2,j)=0;
+    				td.at<unsigned char>(i2,j)=0;
     		else
     			i2=input.rows-1;
     	}
     }
+    
+    //imshow("ISOLATE",td);
+    //waitKey();
     //bottom up
     for(int j=0; j<input.cols;j++)
     {
     	//int corBorda = input.at<unsigned char>(0,j);
     	for(int i2=input.rows-1;i2>1;i2--)
     	{
-    		int corPixelAtual = input.at<unsigned char>(i2,j);
-    		int pixelVizinho = input.at<unsigned char>(i2-1,j);
+    		int corPixelAtual = bu.at<unsigned char>(i2,j);
+    		int pixelVizinho = bu.at<unsigned char>(i2-1,j);
     		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    				input.at<unsigned char>(i2,j)=0;
+    				bu.at<unsigned char>(i2,j)=0;
     		else
     			i2=0;
     	}
     }
+    //imshow("ISOLATE",bu);
+    //waitKey();
+	//left to right
+    for(int i2=0;i2<input.rows;i2++)
+    {
+    	//int corBorda = input.at<unsigned char>(i2,0);
+    	for(int j=0; j<input.cols-1;j++)
+    	{
+    		int corPixelAtual = lr.at<unsigned char>(i2,j);
+    		int pixelVizinho = lr.at<unsigned char>(i2,j+1);
+    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
+    		{
+    			lr.at<unsigned char>(i2,j)=0;
+    		}
+    			
+    		else
+    			j=input.cols-1;
+    	}
+    }
+    //imshow("ISOLATE",lr);
+    //waitKey();
+    //right to left
+    for(int i2=0;i2<input.rows;i2++)
+    {
+    	//int corBorda = input.at<unsigned char>(i2,input.cols-1);
+    	for(int j=input.cols-1; j>1;j--)
+    	{
+    		int corPixelAtual = rl.at<unsigned char>(i2,j);
+    		int pixelVizinho = rl.at<unsigned char>(i2,j-1);
+    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
+    				rl.at<unsigned char>(i2,j)=0;
+    		else
+    			j=0;
+    	}
+    }
+    //imshow("ISOLATE",rl);
+    //waitKey();
+
+    for(int i=0;i<input.rows;i++)
+    {
+    	//int corBorda = input.at<unsigned char>(i2,input.cols-1);
+    	for(int j=input.cols-1; j>1;j--)
+    	{
+    		if(   td.at<unsigned char>(i,j)==0
+    			||bu.at<unsigned char>(i,j)==0
+    			||lr.at<unsigned char>(i,j)==0
+    			||rl.at<unsigned char>(i,j)==0
+    		)
+    			input.at<unsigned char>(i,j)=0;
+    	}
+    }
+
+    //imshow("ISOLATE",input);
+    //waitKey();
+
         
 }
 
@@ -347,14 +380,46 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		vector<vector<Point> > squares;
 		
 		Mat matImg = input(myROI);
-		
+		Mat original = matImg.clone();
         intact = matImg.clone();
-        
+        //////////////////////////////////////////////////////////////////////
+       /* Mat img1 = imread("plate.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+        float reductionFactor = 2;
+		Size smallSize(matImg.cols*reductionFactor,matImg.rows*reductionFactor);
+		Mat smallerImg = Mat::zeros( smallSize, matImg.type());
+		//make a copy of src to smallerImg reduced to 30% of the original size
+		resize(matImg,matImg,smallerImg.size(),0,0,INTER_CUBIC);
+
+        // detecting keypoints
+	    SurfFeatureDetector detector(400);
+	    vector<KeyPoint> keypoints1, keypoints2;
+	    detector.detect(img1, keypoints1);
+	    detector.detect(matImg, keypoints2);
+
+	    // computing descriptors
+	    SurfDescriptorExtractor extractor;
+	    Mat descriptors1, descriptors2;
+	    extractor.compute(img1, keypoints1, descriptors1);
+	    extractor.compute(matImg, keypoints2, descriptors2);
+
+	    // matching descriptors
+	    BruteForceMatcher<L2<float> > matcher;
+	    vector<DMatch> matches;
+	    matcher.match(descriptors1, descriptors2, matches);
+
+	    // drawing the results
+	    namedWindow("matches", 1);
+	    Mat img_matches;
+	    drawMatches(img1, keypoints1, matImg, keypoints2, matches, img_matches);
+	    imshow("matches", img_matches);
+		*/
+        //////////////////////////////////////////////////////////////////////
         IsolatePlate(matImg);
        	
        	findSquares(matImg, squares);
         
-		drawSquares(matImg, squares);
+		drawSquares(original, squares);
 	}
 }
 
