@@ -333,7 +333,6 @@ void IsolatePlate(Mat input,int z)
     						-  	xi2.at<double>(i - winx,j + winy + 1)
     						-	xi2.at<double>(i + winx + 1,j - winy);
     			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
-    			//printf("sqrt %f \n",sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix));
     		}
     		//waitKey();
     	}
@@ -346,23 +345,7 @@ void IsolatePlate(Mat input,int z)
 		   	ss.at<float>(i,j) = (st.at<Vec3f>(i,j)[0] + st.at<Vec3f>(i,j)[1] + st.at<Vec3f>(i,j)[2])/3;
 		}
 	}
-
-	for(int ind=0;ind<3;ind++){
-    for(int i=0;i<srows;i++){
-		for(int j=0;j<scols;j++)
-			;//printf("%d %d -- %f\n",i,j,st.at<Vec3f>(i,j)[ind]);
-	}
-	}
 	
-	/*so = sort(ss(:));
-	T = .5* (so(round(.5*length(so))) + so(round(.9*length(so))) );
-	sbin = (ss > T);
-	%imshow(x0.*sbin/255);
-	%
-	% finds connected components
-	%
-	%toc
-	*/
 	Mat so = ss.clone();
 	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
 	float T = 0.5*(so.at<float>(so.rows*0.5,so.cols*0.5)+(so.at<float>(so.rows*0.9,so.cols*0.9)));
@@ -378,107 +361,7 @@ void IsolatePlate(Mat input,int z)
 	//std::cout<<ss<<endl;
 
 	ConnectedComponents(input, original, z);
-	//imshow("gradient",input);
-	//waitKey();
-
-	
-
-	/*
-	Mat lr, rl, bu, td;
-	lr = input.clone();
-	rl = input.clone();
-	bu = input.clone();
-	td = input.clone();
-	//namedWindow("ISOLATE", WINDOW_AUTOSIZE);
-	float min_thresh=0.89;
-    float max_thresh=1.1;
-     //up to down
-    for(int j=0; j<input.cols;j++)
-    {
-    	//int corBorda = input.at<unsigned char>(0,j);
-    	for(int i2=0;i2<input.rows-1;i2++)
-    	{
-    		int corPixelAtual = td.at<unsigned char>(i2,j);
-    		int pixelVizinho = td.at<unsigned char>(i2+1,j);
-    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    				td.at<unsigned char>(i2,j)=0;
-    		else
-    			i2=input.rows-1;
-    	}
-    }
-    
-    //imshow("ISOLATE",td);
-    //waitKey();
-    //bottom up
-    for(int j=0; j<input.cols;j++)
-    {
-    	//int corBorda = input.at<unsigned char>(0,j);
-    	for(int i2=input.rows-1;i2>1;i2--)
-    	{
-    		int corPixelAtual = bu.at<unsigned char>(i2,j);
-    		int pixelVizinho = bu.at<unsigned char>(i2-1,j);
-    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    				bu.at<unsigned char>(i2,j)=0;
-    		else
-    			i2=0;
-    	}
-    }
-    //imshow("ISOLATE",bu);
-    //waitKey();
-	//left to right
-    for(int i2=0;i2<input.rows;i2++)
-    {
-    	//int corBorda = input.at<unsigned char>(i2,0);
-    	for(int j=0; j<input.cols-1;j++)
-    	{
-    		int corPixelAtual = lr.at<unsigned char>(i2,j);
-    		int pixelVizinho = lr.at<unsigned char>(i2,j+1);
-    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    		{
-    			lr.at<unsigned char>(i2,j)=0;
-    		}
-    			
-    		else
-    			j=input.cols-1;
-    	}
-    }
-    //imshow("ISOLATE",lr);
-    //waitKey();
-    //right to left
-    for(int i2=0;i2<input.rows;i2++)
-    {
-    	//int corBorda = input.at<unsigned char>(i2,input.cols-1);
-    	for(int j=input.cols-1; j>1;j--)
-    	{
-    		int corPixelAtual = rl.at<unsigned char>(i2,j);
-    		int pixelVizinho = rl.at<unsigned char>(i2,j-1);
-    		if((corPixelAtual > pixelVizinho*min_thresh) && (corPixelAtual < pixelVizinho*max_thresh))
-    				rl.at<unsigned char>(i2,j)=0;
-    		else
-    			j=0;
-    	}
-    }
-    //imshow("ISOLATE",rl);
-    //waitKey();
-
-    for(int i=0;i<input.rows;i++)
-    {
-    	//int corBorda = input.at<unsigned char>(i2,input.cols-1);
-    	for(int j=input.cols-1; j>1;j--)
-    	{
-    		if(   td.at<unsigned char>(i,j)==0
-    			||bu.at<unsigned char>(i,j)==0
-    			||lr.at<unsigned char>(i,j)==0
-    			||rl.at<unsigned char>(i,j)==0
-    		)
-    			input.at<unsigned char>(i,j)=0;
-    	}
-    }
-
-    //imshow("ISOLATE",input);
-    //waitKey();
-	*/
-        
+	    
 }
 
 void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
