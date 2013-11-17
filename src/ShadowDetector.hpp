@@ -36,7 +36,7 @@ Mat TransitionToShadow(Mat input, int uBoundary);
 Mat ExludeFalseShadowPixels(Mat input, Size size);
 void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor);
 Mat localSTD(Mat input, Mat xi, Mat xi2, int ind);
-void IsolatePlate(Mat input);
+void IsolatePlate(Mat input, int z);
 void SearchForShadow(Mat src,int uBoundary);
 int SizeOfCar(Mat *smallerImg, int y, int x);
 bool PixelBelongToSegment(Mat dst, int i, int j);

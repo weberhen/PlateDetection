@@ -265,9 +265,10 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input)
+void IsolatePlate(Mat input,int z)
 {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	Mat original = input.clone();
 	namedWindow("gradient", WINDOW_AUTOSIZE);
 	Mat abs_grad_x;
 	input.convertTo(input, CV_32F);
@@ -376,9 +377,9 @@ void IsolatePlate(Mat input)
 	}
 	//std::cout<<ss<<endl;
 
-	ConnectedComponents(input);
-	imshow("gradient",input);
-	waitKey();
+	ConnectedComponents(input, original, z);
+	//imshow("gradient",input);
+	//waitKey();
 
 	
 
@@ -534,11 +535,12 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 	    imshow("matches", img_matches);
 		*/
         //////////////////////////////////////////////////////////////////////
-        IsolatePlate(matImg);
+        int z = y + height;
+        IsolatePlate(matImg,z);
        	
-       	findSquares(matImg, squares);
+       	//findSquares(matImg, squares);
         
-		drawSquares(original, squares);
+		//drawSquares(original, squares);
 	}
 }
 

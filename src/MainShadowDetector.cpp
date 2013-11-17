@@ -4,7 +4,7 @@
 int main(int argc, char** argv)
 {
 	Mat src_gray, src;
-	bool debugMode = true;
+	bool debugMode = false;
 	structAsphaltInfo _structAsphaltInfo;
 
 	if(!debugMode)
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	{
 		Mat inter = imread("BIG_31280000.png",1);
         cvtColor(inter,inter,CV_BGR2GRAY);
-        IsolatePlate(inter);
+        IsolatePlate(inter,0);
        	imwrite("BIG_preta.png",inter);
        	return 0;
 

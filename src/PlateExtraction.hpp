@@ -6,6 +6,6 @@
 
 using namespace cv;
 
-void ConnectedComponents(const Mat input);
+void ConnectedComponents(const Mat mat, Mat original, int z);
 
 #endif
