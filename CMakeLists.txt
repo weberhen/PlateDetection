@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 2.8)
 set (CMAKE_CXX_FLAGS "-std=c++0x -g3 -Wall -O0")
 set(CMAKE_PREFIX_PATH /opt/local/lib/cmake/)
 include_directories(/home/gopro/Sandbox/ShadowDetector/src)
-include_directories(/home/gopro/Sandbox/ShadowDetector/src/blobs)
+include_directories(/home/gopro/Desktop/cvblob/cvBlob)
 
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -38,9 +38,11 @@ add_executable(ShadowDetector ${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
 						            ${CMAKE_SOURCE_DIR}/src/SquareDetection.cpp
             ${CMAKE_SOURCE_DIR}/src/RobustMatcher.cpp
             /home/gopro/Desktop/cvblob/cvBlob/cvlabel.cpp
+            /home/gopro/Desktop/cvblob/cvBlob/cvblob.cpp
 						${CMAKE_SOURCE_DIR}/src/ImageManipulation.cpp
             ${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
             ${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
+			${CMAKE_SOURCE_DIR}/src/PlateExtraction.cpp
                         )
 
 TARGET_LINK_LIBRARIES(ShadowDetector ${OpenCV_LIBS})

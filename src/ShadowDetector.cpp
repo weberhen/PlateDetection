@@ -375,6 +375,8 @@ void IsolatePlate(Mat input)
 			
 	}
 	//std::cout<<ss<<endl;
+
+	ConnectedComponents(input);
 	imshow("gradient",input);
 	waitKey();
 
