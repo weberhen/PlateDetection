@@ -1,8 +1,11 @@
 #include "ShadowDetector.hpp"
-
+#include <stdlib.h>
 
 Mat src_gray;
 Mat dst, detected_edges;
+
+
+using namespace std;
 
 int edgeThreshold = 1;
 int const max_lowThreshold = 100;
@@ -264,6 +267,120 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 
 void IsolatePlate(Mat input)
 {
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	namedWindow("gradient", WINDOW_AUTOSIZE);
+	Mat abs_grad_x;
+	input.convertTo(input, CV_32F);
+	int sz[3] = {input.cols,input.rows,3};
+    Mat x;
+
+	Sobel( input, x, CV_32F, 1, 0);
+
+	//convertScaleAbs(x,abs_grad_x);
+
+	// x = gx; % evaluates horizontal details
+
+	Mat xi,xi2;
+	cv::integral(x, xi, xi2, CV_64F);
+	//abs_grad_x É DO TIPO UNSIGNED CHAR
+	//std::cout<<input<<endl;
+	//std::cout<<"x end"<<endl;
+	//imshow("gradient",x);
+	//waitKey();
+	//cv::Size s = x.size();
+	//int rows = s.height;
+	//int cols = s.width;
+	//std::cout << x.depth() << " "<<x.type() << " " << rows << " " << cols << " " << std::endl;
+	//std::cout << input.depth()<<" "<<input.type() << " " << input.rows << " " << input.cols << " " << std::endl;
+	
+	//imshow("gradient",xi);
+	//std::cout<<x<<endl;
+	//waitKey();
+	//for(int i2=0;i2<input.rows;i2++){
+	//	for(int j2=0;j2<input.cols;j2++)	
+	// 		printf("%d %d -- %f\n",i2,j2,x.at<float>(i2,j2));
+	// 		waitKey();
+	//}
+	//xi É DO TIPO DOUBLE
+	
+	//////////////////////////////////////////////DONE///////////////////////////////////////////////////////
+	//std::cout<<xi<<endl;	
+	int winy_size[3] = {1,2,3};
+	int winx_size[3] = {1,2,3};
+
+	int scols = input.cols;
+	int srows = input.rows;
+	
+    Mat st(3,sz, CV_64FC3, Scalar::all(0));
+    for(int ind=0;ind<3;ind++)
+    {
+    	int winx = winx_size[ind];
+	    int winy = winy_size[ind];
+	    
+	    double Npix = (2*winx+1)*(2*winy+1);
+    	for(int i=1+winx;i<srows-winy-1;i++)
+    	{
+    		for(int j=winy;j<scols-winx-1;j++)
+    		{
+    			double ex = 	xi.at<double>(i + winx + 1,j + winy + 1)
+    						+ 	xi.at<double>(i - winx, j - winy)
+    						-  	xi.at<double>(i - winx,j + winy + 1)
+    						-	xi.at<double>(i + winx + 1,j - winy);
+            	
+    			double ex2 = 	xi2.at<double>(i + winx + 1,j + winy + 1)
+    						+ 	xi2.at<double>(i - winx, j - winy)
+    						-  	xi2.at<double>(i - winx,j + winy + 1)
+    						-	xi2.at<double>(i + winx + 1,j - winy);
+    			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
+    			//printf("sqrt %f \n",sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix));
+    		}
+    		//waitKey();
+    	}
+    }
+    Mat ss(srows, scols, CV_32F);
+	for(int i=0;i<srows;i++)
+	{
+		for(int j=0;j<scols;j++)
+		{
+		   	ss.at<float>(i,j) = (st.at<Vec3f>(i,j)[0] + st.at<Vec3f>(i,j)[1] + st.at<Vec3f>(i,j)[2])/3;
+		}
+	}
+
+	for(int ind=0;ind<3;ind++){
+    for(int i=0;i<srows;i++){
+		for(int j=0;j<scols;j++)
+			;//printf("%d %d -- %f\n",i,j,st.at<Vec3f>(i,j)[ind]);
+	}
+	}
+	
+	/*so = sort(ss(:));
+	T = .5* (so(round(.5*length(so))) + so(round(.9*length(so))) );
+	sbin = (ss > T);
+	%imshow(x0.*sbin/255);
+	%
+	% finds connected components
+	%
+	%toc
+	*/
+	Mat so = ss.clone();
+	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	float T = 0.5*(so.at<float>(so.rows*0.5,so.cols*0.5)+(so.at<float>(so.rows*0.9,so.cols*0.9)));
+	//printf("WOW %f\n", T);
+	//waitKey();
+
+	for(int i=0;i<srows;i++){
+		for(int j=0;j<scols;j++)
+			if(ss.at<float>(i,j)<T)
+				input.at<float>(i,j)=0.;
+			
+	}
+	//std::cout<<ss<<endl;
+	imshow("gradient",input);
+	waitKey();
+
+	
+
+	/*
 	Mat lr, rl, bu, td;
 	lr = input.clone();
 	rl = input.clone();
@@ -357,7 +474,7 @@ void IsolatePlate(Mat input)
 
     //imshow("ISOLATE",input);
     //waitKey();
-
+	*/
         
 }
 

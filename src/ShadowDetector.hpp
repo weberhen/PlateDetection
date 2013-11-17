@@ -1,11 +1,13 @@
 #ifndef _SHADOWDETECTOR
 #define _SHADOWDETECTOR
 
+
 #include "opencv2/opencv.hpp"
 #include "SquareDetection.hpp"
 #include "MathFunctions.hpp"
 #include "ImageManipulation.hpp"
-#include "RobustMatcher.cpp"
+
+//#include "RobustMatcher.cpp"
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,6 +35,7 @@ vector<Vec4i> mergeLines(Mat src);
 Mat TransitionToShadow(Mat input, int uBoundary);
 Mat ExludeFalseShadowPixels(Mat input, Size size);
 void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor);
+Mat localSTD(Mat input, Mat xi, Mat xi2, int ind);
 void IsolatePlate(Mat input);
 void SearchForShadow(Mat src,int uBoundary);
 int SizeOfCar(Mat *smallerImg, int y, int x);
