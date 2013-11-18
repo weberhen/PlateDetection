@@ -265,47 +265,33 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input,int z)
+void IsolatePlate(Mat input2,int z)
 {
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//reduces the imagem to a fixed size. This way it wont spent more time in big images
+	//the fized size will be 80x(rows adjusted to the reduction proportion)
+	int smallCols = 80;
+	//the reduction of rows depends on the % of reduction of the cols. 
+	int smallRows = input2.rows*(float)((float)smallCols/(float)input2.cols);
+	//the z axis must be also updated
+	//cout<<"z before: "<<z<<" rows before: "<<input2.rows<<endl;
+	z = (float)z*(float)((float)smallRows/(float)input2.rows);
+	
+	Size smallSize(smallCols,smallRows);
+	Mat input;
+	
+	resize(input2,input,smallSize,0,0,INTER_CUBIC);
+	
 	Mat original = input.clone();
-	namedWindow("gradient", WINDOW_AUTOSIZE);
-	Mat abs_grad_x;
+	
 	input.convertTo(input, CV_32F);
 	int sz[3] = {input.cols,input.rows,3};
     Mat x;
 
 	Sobel( input, x, CV_32F, 1, 0);
 
-	//convertScaleAbs(x,abs_grad_x);
-
-	// x = gx; % evaluates horizontal details
-
 	Mat xi,xi2;
 	cv::integral(x, xi, xi2, CV_64F);
-	//abs_grad_x É DO TIPO UNSIGNED CHAR
-	//std::cout<<input<<endl;
-	//std::cout<<"x end"<<endl;
-	//imshow("gradient",x);
-	//waitKey();
-	//cv::Size s = x.size();
-	//int rows = s.height;
-	//int cols = s.width;
-	//std::cout << x.depth() << " "<<x.type() << " " << rows << " " << cols << " " << std::endl;
-	//std::cout << input.depth()<<" "<<input.type() << " " << input.rows << " " << input.cols << " " << std::endl;
 	
-	//imshow("gradient",xi);
-	//std::cout<<x<<endl;
-	//waitKey();
-	//for(int i2=0;i2<input.rows;i2++){
-	//	for(int j2=0;j2<input.cols;j2++)	
-	// 		printf("%d %d -- %f\n",i2,j2,x.at<float>(i2,j2));
-	// 		waitKey();
-	//}
-	//xi É DO TIPO DOUBLE
-	
-	//////////////////////////////////////////////DONE///////////////////////////////////////////////////////
-	//std::cout<<xi<<endl;	
 	int winy_size[3] = {1,2,3};
 	int winx_size[3] = {1,2,3};
 
@@ -334,7 +320,6 @@ void IsolatePlate(Mat input,int z)
     						-	xi2.at<double>(i + winx + 1,j - winy);
     			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
     		}
-    		//waitKey();
     	}
     }
     Mat ss(srows, scols, CV_32F);
@@ -348,82 +333,69 @@ void IsolatePlate(Mat input,int z)
 	
 	Mat so = ss.clone();
 	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	//cout<<"cols: "<<so.cols<<" rows: "<<so.rows<<" so.rows*0.5: "<<so.rows*0.5<<" so.cols*0.5: "<<so.cols*0.5<<" so.rows*0.9: "<<so.rows*0.9<<" so.cols*0.9: "<<so.cols*0.9<<endl;
 	float T = 0.5*(so.at<float>(so.rows*0.5,so.cols*0.5)+(so.at<float>(so.rows*0.9,so.cols*0.9)));
-	//printf("WOW %f\n", T);
-	//waitKey();
-
+	
 	for(int i=0;i<srows;i++){
 		for(int j=0;j<scols;j++)
 			if(ss.at<float>(i,j)<T)
 				input.at<float>(i,j)=0.;
 			
 	}
-	//std::cout<<ss<<endl;
-
-	ConnectedComponents(input, original, z);
+	namedWindow("step",	WINDOW_AUTOSIZE);
+	imshow("step",input);
+	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
+	ConnectedComponents(input, original, input2, z);
 	    
 }
 
 void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 {
 	Mat intact;
+	int leftx,lefty,rightx,righty;
 	for(unsigned int i =0;i<lines.size();i++)
 	{
 		Vec4i l = lines[i];
-		int x = (l[0])/reductionFactor;
-		int y = (l[3]/3)/reductionFactor;
-		int width = (l[2]-l[0])/reductionFactor;
-		int height = l[3]/reductionFactor-y;
+		leftx=l[0];
+		lefty=l[1];
+		rightx=l[2];
+		righty=l[3];
+		
+		int x = (leftx)/reductionFactor;
+		int y = (righty/3)/reductionFactor;
+		int width = (rightx-leftx)/reductionFactor;
+		int height = righty/reductionFactor-y;
 		width=width*0.85; //reduces the width's ROI in 15% 
 		x=x+width*0.15;   //reduces the x axis of the ROI in 15% 
-		height=height*0.75; //discard the shadow of the vehicule
+		//height=height*0.9; //discard the shadow of the vehicule
+		//cout<<"input x: "<<input.cols<<" input y: "<<input.rows<<endl;
 		//cout<<"x: "<<x<<"y: "<<y<<"width: "<<width<<"height: "<<height<<endl;
+		
+		float tg16 = 0.6; //tangent of 16o
+		height = (float)(righty/reductionFactor)*tg16;
+		if(height>(righty/reductionFactor))
+			height=(righty/reductionFactor-y)*0.75;
+
+
 		cv::Rect myROI(x, y, width, height);
 		
 		vector<vector<Point> > squares;
 		
 		Mat matImg = input(myROI);
+
+		namedWindow("bug",WINDOW_AUTOSIZE);
+		//if(x==426){
+			imshow("bug",matImg);
+		//	waitKey();}
+
 		Mat original = matImg.clone();
         intact = matImg.clone();
-        //////////////////////////////////////////////////////////////////////
-       /* Mat img1 = imread("plate.png", CV_LOAD_IMAGE_GRAYSCALE);
-
-        float reductionFactor = 2;
-		Size smallSize(matImg.cols*reductionFactor,matImg.rows*reductionFactor);
-		Mat smallerImg = Mat::zeros( smallSize, matImg.type());
-		//make a copy of src to smallerImg reduced to 30% of the original size
-		resize(matImg,matImg,smallerImg.size(),0,0,INTER_CUBIC);
-
-        // detecting keypoints
-	    SurfFeatureDetector detector(400);
-	    vector<KeyPoint> keypoints1, keypoints2;
-	    detector.detect(img1, keypoints1);
-	    detector.detect(matImg, keypoints2);
-
-	    // computing descriptors
-	    SurfDescriptorExtractor extractor;
-	    Mat descriptors1, descriptors2;
-	    extractor.compute(img1, keypoints1, descriptors1);
-	    extractor.compute(matImg, keypoints2, descriptors2);
-
-	    // matching descriptors
-	    BruteForceMatcher<L2<float> > matcher;
-	    vector<DMatch> matches;
-	    matcher.match(descriptors1, descriptors2, matches);
-
-	    // drawing the results
-	    namedWindow("matches", 1);
-	    Mat img_matches;
-	    drawMatches(img1, keypoints1, matImg, keypoints2, matches, img_matches);
-	    imshow("matches", img_matches);
-		*/
-        //////////////////////////////////////////////////////////////////////
-        int z = y + height;
-        IsolatePlate(matImg,z);
-       	
-       	//findSquares(matImg, squares);
         
-		//drawSquares(original, squares);
+        //z is the distance between the camera and the car 
+        //being evaluated through its position in the image
+        int z = righty/reductionFactor; //y + height;
+        if(width>height) //for some reason, without this condition I get segfault TODO:fix me
+        	IsolatePlate(matImg,z);
 	}
 }
 

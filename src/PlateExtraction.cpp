@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 
 
-void ConnectedComponents(const Mat mat, Mat original, int z)
+void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 {
 	namedWindow("plate",WINDOW_AUTOSIZE);
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
@@ -43,14 +43,20 @@ void ConnectedComponents(const Mat mat, Mat original, int z)
 	    unsigned int maxx = it->second->maxx; ///< X max.
 	    unsigned int miny = it->second->miny; ///< Y min.
 	    unsigned int maxy = it->second->maxy; ///< y max.
-				
+		
+		//correcting te values (because of the reduction to save time)
+	    minx = (sizeOriginal.cols * minx) / 80;
+	    maxx = (sizeOriginal.cols * maxx) / 80;
+	    miny = (sizeOriginal.rows * miny) / original.rows;
+	    maxy = (sizeOriginal.rows * maxy) / original.rows;
+
 		int width = maxx - minx;
 		int height = maxy - miny;
 		cv::Rect myROI(minx, miny, width , height);
-		float sin10 = 0.18666;
+		float tg11 = 0.1909; //tangent of 11o
 		float opp = width/2;
 
-		Mat plate = original(myROI);
+		Mat plate = sizeOriginal(myROI);
 		Scalar stddev;
 		Scalar mean;
 		//getting the stdev of the patch
@@ -61,12 +67,12 @@ void ConnectedComponents(const Mat mat, Mat original, int z)
 		namedWindow("final_plate",WINDOW_AUTOSIZE);
 		if((width > height*2.5) &&
 		   (width < height*4) &&
-			(((opp/(float)z) < (sin10*2))&&
-			(((opp/(float)z) > (sin10*0.1)))) &&
+			(((opp/(float)z) < (tg11*3))&&
+			(((opp/(float)z) > (tg11*0.1)))) &&
 			stddev_pxl>20
 		)
 		{
-			imshow("final_plate",original(myROI));
+			imshow("final_plate",plate);
 		}
 	}
 	
