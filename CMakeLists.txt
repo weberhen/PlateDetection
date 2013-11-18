@@ -14,8 +14,8 @@ cmake_minimum_required(VERSION 2.8)
 #set (CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ -g3 -Wall -O0")
 set (CMAKE_CXX_FLAGS "-std=c++0x -g3 -Wall -O0")
 set(CMAKE_PREFIX_PATH /opt/local/lib/cmake/)
-include_directories(/home/gopro/Sandbox/ShadowDetector/src)
-include_directories(/home/gopro/Desktop/cvblob/cvBlob)
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/cvblob/cvBlob)
 
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -35,14 +35,14 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
 FIND_PACKAGE(OpenCV REQUIRED)
 
 add_executable(ShadowDetector ${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
-						            ${CMAKE_SOURCE_DIR}/src/SquareDetection.cpp
-            ${CMAKE_SOURCE_DIR}/src/RobustMatcher.cpp
-            /home/gopro/Desktop/cvblob/cvBlob/cvlabel.cpp
-            /home/gopro/Desktop/cvblob/cvBlob/cvblob.cpp
-						${CMAKE_SOURCE_DIR}/src/ImageManipulation.cpp
-            ${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
-            ${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
-			${CMAKE_SOURCE_DIR}/src/PlateExtraction.cpp
+				#${CMAKE_SOURCE_DIR}/src/SquareDetection.cpp
+#				#${CMAKE_SOURCE_DIR}/src/RobustMatcher.cpp
+				${CMAKE_SOURCE_DIR}/cvblob/cvBlob/cvlabel.cpp
+				${CMAKE_SOURCE_DIR}/cvblob/cvBlob/cvblob.cpp
+				${CMAKE_SOURCE_DIR}/src/ImageManipulation.cpp
+				${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
+				${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
+				${CMAKE_SOURCE_DIR}/src/PlateExtraction.cpp
                         )
 
 TARGET_LINK_LIBRARIES(ShadowDetector ${OpenCV_LIBS})
