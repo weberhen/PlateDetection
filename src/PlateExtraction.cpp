@@ -7,12 +7,12 @@ using namespace std;
 
 void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 {
-	namedWindow("plate",WINDOW_AUTOSIZE);
+//	namedWindow("plate",WINDOW_AUTOSIZE);
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
 	IplImage *im32 = new IplImage(mat);
 	IplImage *img32original = new IplImage(original);
 	cvConvertScale(im32, im8, 1);
-	
+
 	IplImage *img8original = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
 	cvConvertScale(img32original, img8original, 1);
 
@@ -22,7 +22,6 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 
 	CvBlobs blobs;
 	unsigned int result = cvLabel(im8, labelImg, blobs);	
-	
 	//Rendering the blobs
 	cvRenderBlobs(labelImg,blobs,img32original,dst);
 
@@ -49,7 +48,6 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 	    maxx = (sizeOriginal.cols * maxx) / 80;
 	    miny = (sizeOriginal.rows * miny) / original.rows;
 	    maxy = (sizeOriginal.rows * maxy) / original.rows;
-
 		int width = maxx - minx;
 		int height = maxy - miny;
 		cv::Rect myROI(minx, miny, width , height);
@@ -64,7 +62,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 		//uchar       mean_pxl = mean.val[0];
 		double       stddev_pxl = stddev.val[0];
 
-		namedWindow("final_plate",WINDOW_AUTOSIZE);
+//		namedWindow("final_plate",WINDOW_AUTOSIZE);
 		if((width > height*2.5) &&
 		   (width < height*4) &&
 			(((opp/(float)z) < (tg11*3))&&
@@ -72,7 +70,8 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 			stddev_pxl>20
 		)
 		{
-			imshow("final_plate",plate);
+			//imwrite("final.png",plate);
+//			imshow("final_plate",plate);
 		}
 	}
 	

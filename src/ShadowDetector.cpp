@@ -285,7 +285,7 @@ void IsolatePlate(Mat input2,int z)
 	
 	input.convertTo(input, CV_32F);
 	int sz[3] = {input.cols,input.rows,3};
-    Mat x;
+    	Mat x;
 
 	Sobel( input, x, CV_32F, 1, 0);
 
@@ -342,8 +342,8 @@ void IsolatePlate(Mat input2,int z)
 				input.at<float>(i,j)=0.;
 			
 	}
-	namedWindow("step",	WINDOW_AUTOSIZE);
-	imshow("step",input);
+	//namedWindow("step",	WINDOW_AUTOSIZE);
+	//imshow("step",input);
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
 	ConnectedComponents(input, original, input2, z);
 	    
@@ -360,7 +360,6 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		lefty=l[1];
 		rightx=l[2];
 		righty=l[3];
-		
 		int x = (leftx)/reductionFactor;
 		int y = (righty/3)/reductionFactor;
 		int width = (rightx-leftx)/reductionFactor;
@@ -383,9 +382,9 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		
 		Mat matImg = input(myROI);
 
-		namedWindow("bug",WINDOW_AUTOSIZE);
+		//("bug",WINDOW_AUTOSIZE);
 		//if(x==426){
-			imshow("bug",matImg);
+			//("bug",matImg);
 		//	waitKey();}
 
 		Mat original = matImg.clone();
@@ -394,6 +393,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
         //z is the distance between the camera and the car 
         //being evaluated through its position in the image
         int z = righty/reductionFactor; //y + height;
+
         if(width>height) //for some reason, without this condition I get segfault TODO:fix me
         	IsolatePlate(matImg,z);
 	}
@@ -411,14 +411,9 @@ void SearchForShadow(Mat src,int uBoundary)
 	smallerImg = TransitionToShadow(smallerImg, uBoundary);
 
 	smallerImg = ExludeFalseShadowPixels(smallerImg, smallSize);
-
 	vector<Vec4i> lines = mergeLines(smallerImg);
-	
 	lines = excludeDuplicateShadows(lines);
-	
 	CreateROIOfShadow(lines, bigImg, reductionFactor);
-	
-	imshow("small2", bigImg);
 	//waitKey();
 
 }

@@ -31,13 +31,13 @@ using namespace std;
 
 namespace cvb
 {
-  const char movesE[4][3][4] = { { {(char)-1, (char)-1, (char)3, CV_CHAINCODE_UP_LEFT   }, { (char)0, (char)-1, (char)0, CV_CHAINCODE_UP   }, { (char)1, (char)-1, (char)0, CV_CHAINCODE_UP_RIGHT   } },
+  const signed char movesE[4][3][4] = { { {(char)-1, (char)-1, (char)3, CV_CHAINCODE_UP_LEFT   }, { (char)0, (char)-1, (char)0, CV_CHAINCODE_UP   }, { (char)1, (char)-1, (char)0, CV_CHAINCODE_UP_RIGHT   } },
 				 { { (char)1, (char)-1, (char)0, CV_CHAINCODE_UP_RIGHT  }, { (char)1,  (char)0, (char)1, CV_CHAINCODE_RIGHT}, { (char)1,  (char)1, (char)1, CV_CHAINCODE_DOWN_RIGHT } },
 				 { { (char)1,  (char)1, (char)1, CV_CHAINCODE_DOWN_RIGHT}, { (char)0,  (char)1, (char)2, CV_CHAINCODE_DOWN }, {(char)-1,  (char)1, (char)2, CV_CHAINCODE_DOWN_LEFT  } },
 				 { {(char)-1,  (char)1, (char)2, CV_CHAINCODE_DOWN_LEFT }, {(char)-1,  (char)0, (char)3, CV_CHAINCODE_LEFT }, {(char)-1, (char)-1, (char)3, CV_CHAINCODE_UP_LEFT    } }
   };
 
-  const char movesI[4][3][4] = { { { (char)1, (char)-1, (char)3, CV_CHAINCODE_UP_RIGHT   }, { (char)0, (char)-1, (char)0, CV_CHAINCODE_UP   }, {(char)-1, (char)-1, (char)0, CV_CHAINCODE_UP_LEFT    } },
+  const signed char movesI[4][3][4] = { { { (char)1, (char)-1, (char)3, CV_CHAINCODE_UP_RIGHT   }, { (char)0, (char)-1, (char)0, CV_CHAINCODE_UP   }, {(char)-1, (char)-1, (char)0, CV_CHAINCODE_UP_LEFT    } },
 				 { {(char)-1, (char)-1, (char)0, CV_CHAINCODE_UP_LEFT    }, {(char)-1,  (char)0, (char)1, CV_CHAINCODE_LEFT }, {(char)-1,  (char)1, (char)1, CV_CHAINCODE_DOWN_LEFT  } },
 				 { {(char)-1,  (char)1, (char)1, CV_CHAINCODE_DOWN_LEFT  }, { (char)0,  (char)1, (char)2, CV_CHAINCODE_DOWN }, { (char)1,  (char)1, (char)2, CV_CHAINCODE_DOWN_RIGHT } },
 				 { { (char)1,  (char)1, (char)2, CV_CHAINCODE_DOWN_RIGHT }, { (char)1,  (char)0, (char)3, CV_CHAINCODE_RIGHT}, { (char)1, (char)-1, (char)3, CV_CHAINCODE_UP_RIGHT   } }

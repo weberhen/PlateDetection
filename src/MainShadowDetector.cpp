@@ -6,7 +6,8 @@ int main(int argc, char** argv)
 	Mat src_gray, src;
 	bool debugMode = false;
 	structAsphaltInfo _structAsphaltInfo;
-
+	//namedWindow("sss",WINDOW_AUTOSIZE);
+	clock_t t, old_t = 0;
 	if(!debugMode)
 	{
 		 VideoCapture stream("bento_ipiranga_1410.h264");
@@ -21,21 +22,26 @@ int main(int argc, char** argv)
 		stream >> src;
 		cv::Rect myROI(0,0,src.cols, 240);
 		while(1)
-	    {
-	        stream >> src;
-	        if(src.empty()) 
-	        {
-	            std::cout << "Error reading video frame" << endl;
-	        }
+	    	{
+	 		t = clock();
+
+	       	stream >> src;
+	       	if(src.empty()) 
+	       	{
+	           		std::cout << "Error reading video frame" << endl;
+	       	}
 
 			//convert src to gray scale (src_gray)
 			cvtColor(src,src_gray,CV_BGR2GRAY);
-			if(!alreadyCalled){
+			if(!alreadyCalled)
+			{
 				_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
 				alreadyCalled=1;
 			}
-			SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
-	        waitKey(20);
+//		SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
+		t = clock() - t;
+		printf ("fps: %f.\n",t,1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
+	       waitKey(20);
 	    }
 	    stream.release();
 	    getchar();
