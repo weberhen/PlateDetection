@@ -62,7 +62,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 		//uchar       mean_pxl = mean.val[0];
 		double       stddev_pxl = stddev.val[0];
 
-//		namedWindow("final_plate",WINDOW_AUTOSIZE);
+		namedWindow("final_plate",WINDOW_AUTOSIZE);
 		if((width > height*2.5) &&
 		   (width < height*4) &&
 			(((opp/(float)z) < (tg11*3))&&
@@ -71,7 +71,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 		)
 		{
 			//imwrite("final.png",plate);
-//			imshow("final_plate",plate);
+			imshow("final_plate",plate);
 		}
 	}
 	

@@ -12,11 +12,11 @@ int main(int argc, char** argv)
 	{
 		 VideoCapture stream("bento_ipiranga_1410.h264");
 
-	    if (!stream.isOpened())
-	    {
-	        std::cout << "Stream cannot be opened" << std::endl;
-	        return -1;
-	    }
+	    	if (!stream.isOpened())
+	    	{
+	       	std::cout << "Stream cannot be opened" << std::endl;
+	       	return -1;
+		}
 
 		int alreadyCalled=0; //limit the asphalt median color calculation to one measures
 		stream >> src;
@@ -28,9 +28,9 @@ int main(int argc, char** argv)
 	       	stream >> src;
 	       	if(src.empty()) 
 	       	{
-	           		std::cout << "Error reading video frame" << endl;
-	       	}
-
+		       	std::cout << "Error reading video frame" << endl;
+		       }
+	
 			//convert src to gray scale (src_gray)
 			cvtColor(src,src_gray,CV_BGR2GRAY);
 			if(!alreadyCalled)
@@ -38,13 +38,16 @@ int main(int argc, char** argv)
 				_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
 				alreadyCalled=1;
 			}
-//		SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
+			SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
+			
+			//imshow("sss",src_gray(myROI));
+			waitKey(2);
+		}
 		t = clock() - t;
 		printf ("fps: %f.\n",t,1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
-	       waitKey(20);
-	    }
-	    stream.release();
-	    getchar();
+	    
+	    	stream.release();
+	    	getchar();
 	}
 	else
 	{
