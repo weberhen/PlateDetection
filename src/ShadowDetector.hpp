@@ -25,6 +25,8 @@ typedef struct asphaltInfo{
 	int porcentageAsphalt;
 } structAsphaltInfo;
 
+extern clock_t timeBetweenPlates;
+
 Mat EraseLine(Mat img, int segmentSize, int i, int j);
 Mat SurroundCar(Mat src,int i,int j,int segmentSize);
 Mat CannyThreshold(Mat src, int lowThreshold);

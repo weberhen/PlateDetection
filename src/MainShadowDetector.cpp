@@ -1,13 +1,15 @@
 #include "MainShadowDetector.hpp"
 #include<time.h>
 
+clock_t timeBetweenPlates = 0;
+
 int main(int argc, char** argv)
 {
 	Mat src_gray, src;
 	bool debugMode = false;
 	structAsphaltInfo _structAsphaltInfo;
 	//namedWindow("sss",WINDOW_AUTOSIZE);
-	clock_t t, old_t = 0;
+	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
 		 VideoCapture stream("bento_ipiranga_1410.h264");
@@ -18,12 +20,11 @@ int main(int argc, char** argv)
 	       	return -1;
 		}
 
-		int alreadyCalled=0; //limit the asphalt median color calculation to one measures
 		stream >> src;
 		cv::Rect myROI(0,0,src.cols, 240);
 		while(1)
 	    	{
-	 		t = clock();
+	 		//t = clock();
 
 	       	stream >> src;
 	       	if(src.empty()) 
@@ -33,21 +34,24 @@ int main(int argc, char** argv)
 	
 			//convert src to gray scale (src_gray)
 			cvtColor(src,src_gray,CV_BGR2GRAY);
-			if(!alreadyCalled)
+			if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5)
 			{
+				//cout<<"too long"<<endl;
 				_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
-				alreadyCalled=1;
+				timeBetweenPlates=clock();
 			}
 			SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 			
 			//imshow("sss",src_gray(myROI));
 			waitKey(2);
+			//to measure the fps, just uncomment the following lines
+			//t = clock() - t;
+			//printf("fps: %f.\n",1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
 		}
-		t = clock() - t;
-		printf ("fps: %f.\n",t,1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
+		
 	    
-	    	stream.release();
-	    	getchar();
+	    stream.release();
+	    getchar();
 	}
 	else
 	{
