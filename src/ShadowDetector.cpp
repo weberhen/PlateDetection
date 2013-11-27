@@ -265,21 +265,22 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input2,int z)
+void IsolatePlate(Mat input,int z)
 {
 	//reduces the imagem to a fixed size. This way it wont spent more time in big images
 	//the fized size will be 80x(rows adjusted to the reduction proportion)
-	int smallCols = 80;
+	int colSizeReduced = 147;
+	int smallCols = colSizeReduced;
 	//the reduction of rows depends on the % of reduction of the cols. 
-	int smallRows = input2.rows*(float)((float)smallCols/(float)input2.cols);
+	//int smallRows = input2.rows*(float)((float)smallCols/(float)input2.cols);
 	//the z axis must be also updated
 	//cout<<"z before: "<<z<<" rows before: "<<input2.rows<<endl;
-	z = (float)z*(float)((float)smallRows/(float)input2.rows);
+	//z = (float)z*(float)((float)smallRows/(float)input2.rows);
 	
-	Size smallSize(smallCols,smallRows);
-	Mat input;
-	
-	resize(input2,input,smallSize,0,0,INTER_CUBIC);
+	//Size smallSize(smallCols,smallRows);
+	//Mat input;
+	//cout<<smallRows<<" "<<smallCols<<endl;
+	//resize(input2,input,smallSize,0,0,INTER_CUBIC);
 	
 	Mat original = input.clone();
 	
@@ -338,14 +339,17 @@ void IsolatePlate(Mat input2,int z)
 	
 	for(int i=0;i<srows;i++){
 		for(int j=0;j<scols;j++)
+		{
 			if(ss.at<float>(i,j)<T)
 				input.at<float>(i,j)=0.;
-			
+			else
+				input.at<float>(i,j)=255.;
+		}
 	}
 	//namedWindow("step",	WINDOW_AUTOSIZE);
 	//imshow("step",input);
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
-	ConnectedComponents(input, original, input2, z);
+	ConnectedComponents(input, original, original, z);
 	    
 }
 
@@ -382,9 +386,9 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		
 		Mat matImg = input(myROI);
 
-		//("bug",WINDOW_AUTOSIZE);
+		namedWindow("bug",WINDOW_AUTOSIZE);
 		//if(x==426){
-			//("bug",matImg);
+			imshow("bug",matImg);
 		//	waitKey();}
 
 		Mat original = matImg.clone();

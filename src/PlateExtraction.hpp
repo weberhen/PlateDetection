@@ -6,6 +6,8 @@
 
 using namespace cv;
 
-void ConnectedComponents(const Mat mat, Mat original, Mat sizeOriginal, int z);
+#include "ShadowDetector.hpp"
 
+void ConnectedComponents(const Mat mat, Mat original, Mat sizeOriginal, int z);
+void printIplImage(const IplImage* src);
 #endif

@@ -8,11 +8,11 @@ int main(int argc, char** argv)
 	Mat src_gray, src;
 	bool debugMode = false;
 	structAsphaltInfo _structAsphaltInfo;
-	//namedWindow("sss",WINDOW_AUTOSIZE);
+	namedWindow("sss",WINDOW_AUTOSIZE);
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
-		 VideoCapture stream("bento_ipiranga_1410.h264");
+		 VideoCapture stream("carlos_gomes_1410.h264");
 
 	    	if (!stream.isOpened())
 	    	{
@@ -21,7 +21,8 @@ int main(int argc, char** argv)
 		}
 
 		stream >> src;
-		cv::Rect myROI(0,0,src.cols, 240);
+		cv::Rect myROI(0,0,src.cols, 220);
+		bool alreadyCalled = false;
 		while(1)
 	    	{
 	 		//t = clock();
@@ -34,15 +35,20 @@ int main(int argc, char** argv)
 	
 			//convert src to gray scale (src_gray)
 			cvtColor(src,src_gray,CV_BGR2GRAY);
-			if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5)
+			if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!alreadyCalled))
+			//if(!alreadyCalled)
 			{
-				//cout<<"too long"<<endl;
+				cout<<"too long"<<endl;
 				_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
+				if(_structAsphaltInfo.median<100)
+					_structAsphaltInfo.median=100;
 				timeBetweenPlates=clock();
+				alreadyCalled=true;
+				cout<<"median is now "<<_structAsphaltInfo.median<<endl;
 			}
 			SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 			
-			//imshow("sss",src_gray(myROI));
+			imshow("sss",src_gray(myROI));
 			waitKey(2);
 			//to measure the fps, just uncomment the following lines
 			//t = clock() - t;
@@ -55,10 +61,10 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		Mat inter = imread("BIG_31280000.png",1);
+		Mat inter = imread("BIG_29000000.png",1);
         cvtColor(inter,inter,CV_BGR2GRAY);
         IsolatePlate(inter,0);
-       	imwrite("BIG_preta.png",inter);
+       	//imwrite("BIG_preta.png",inter);
        	return 0;
 
 		namedWindow("Small3",WINDOW_AUTOSIZE);
