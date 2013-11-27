@@ -12,7 +12,11 @@ int main(int argc, char** argv)
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
-		 VideoCapture stream("carlos_gomes_1410.h264");
+		 //VideoCapture stream("bento_ipiranga_1410.h264");
+		 VideoCapture stream("cristiano_fischer_1010.h264");
+		 //VideoCapture stream("carlos_gomes_1410.h264");
+		 
+		 
 
 	    	if (!stream.isOpened())
 	    	{
@@ -38,13 +42,13 @@ int main(int argc, char** argv)
 			if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!alreadyCalled))
 			//if(!alreadyCalled)
 			{
-				cout<<"too long"<<endl;
+				//cout<<"too long"<<endl;
 				_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
 				if(_structAsphaltInfo.median<100)
 					_structAsphaltInfo.median=100;
 				timeBetweenPlates=clock();
 				alreadyCalled=true;
-				cout<<"median is now "<<_structAsphaltInfo.median<<endl;
+				//cout<<"median is now "<<_structAsphaltInfo.median<<endl;
 			}
 			SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 			
