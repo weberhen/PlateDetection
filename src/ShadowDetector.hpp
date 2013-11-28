@@ -7,6 +7,7 @@
 #include "MathFunctions.hpp"
 #include "ImageManipulation.hpp"
 #include "PlateExtraction.hpp"
+#include "Histogram.hpp"
 //#include "RobustMatcher.cpp"
 #include <iostream>
 #include <stdlib.h>

@@ -43,6 +43,7 @@ add_executable(ShadowDetector ${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
 				${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
 				${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
 				${CMAKE_SOURCE_DIR}/src/PlateExtraction.cpp
+				${CMAKE_SOURCE_DIR}/src/Histogram.cpp
                         )
 
 TARGET_LINK_LIBRARIES(ShadowDetector ${OpenCV_LIBS})

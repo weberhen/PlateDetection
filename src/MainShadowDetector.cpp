@@ -12,8 +12,8 @@ int main(int argc, char** argv)
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
-		 //VideoCapture stream("bento_ipiranga_1410.h264");
-		 VideoCapture stream("cristiano_fischer_1010.h264");
+		 VideoCapture stream("bento_ipiranga_1410.h264");
+		 //VideoCapture stream("cristiano_fischer_1010.h264");
 		 //VideoCapture stream("carlos_gomes_1410.h264");
 		 
 		 
@@ -65,7 +65,8 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		Mat inter = imread("BIG_29000000.png",1);
+
+		Mat inter = imread("ROI.png",1);
         cvtColor(inter,inter,CV_BGR2GRAY);
         IsolatePlate(inter,0);
        	//imwrite("BIG_preta.png",inter);

@@ -125,7 +125,8 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 
 		if((width > height*2.5) &&
 		   (width < height*4) &&
-		   (width>25)&&(height>5))
+		   (width>25)&&(height>15)&&
+		   (width<matLabelImg.cols/2))
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
 		    Mat plate = sizeOriginal(myROI);
@@ -134,6 +135,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 			//getting the stdev of the patch
 			cv::meanStdDev ( plate, mean, stddev );
 			double stddev_pxl = stddev.val[0];
+			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>20){
 				timeBetweenPlates=clock();
 		    	imshow("final_plate",plate);	

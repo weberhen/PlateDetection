@@ -333,7 +333,10 @@ void IsolatePlate(Mat input,int z)
 	}
 	
 	Mat so = ss.clone();
+
 	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+
+	//CalcHistogram( so );
 	//cout<<"cols: "<<so.cols<<" rows: "<<so.rows<<" so.rows*0.5: "<<so.rows*0.5<<" so.cols*0.5: "<<so.cols*0.5<<" so.rows*0.9: "<<so.rows*0.9<<" so.cols*0.9: "<<so.cols*0.9<<endl;
 	float T = 0.5*(so.at<float>(so.rows*0.5,so.cols*0.5)+(so.at<float>(so.rows*0.9,so.cols*0.9)));
 	
@@ -349,6 +352,7 @@ void IsolatePlate(Mat input,int z)
 	//namedWindow("step",	WINDOW_AUTOSIZE);
 	//imshow("step",input);
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
+	
 	ConnectedComponents(input, original, original, z);
 	    
 }
