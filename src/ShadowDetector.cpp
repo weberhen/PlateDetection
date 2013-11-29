@@ -265,7 +265,7 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input,int z)
+void IsolatePlate(Mat input,int z, int x, int y)
 {
 	//reduces the imagem to a fixed size. This way it wont spent more time in big images
 	//the fized size will be 80x(rows adjusted to the reduction proportion)
@@ -286,12 +286,12 @@ void IsolatePlate(Mat input,int z)
 	
 	input.convertTo(input, CV_32F);
 	int sz[3] = {input.cols,input.rows,3};
-    	Mat x;
+    	Mat xMat;
 
-	Sobel( input, x, CV_32F, 1, 0);
+	Sobel( input, xMat, CV_32F, 1, 0);
 
 	Mat xi,xi2;
-	cv::integral(x, xi, xi2, CV_64F);
+	cv::integral(xMat, xi, xi2, CV_64F);
 	
 	int winy_size[3] = {1,2,3};
 	int winx_size[3] = {1,2,3};
@@ -349,11 +349,11 @@ void IsolatePlate(Mat input,int z)
 				input.at<float>(i,j)=255.;
 		}
 	}
-	//namedWindow("step",	WINDOW_AUTOSIZE);
-	//imshow("step",input);
+	namedWindow("step",	WINDOW_AUTOSIZE);
+	imshow("step",input);
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
 	
-	ConnectedComponents(input, original, original, z);
+	ConnectedComponents(input, original, original, z, x, y);
 	    
 }
 
@@ -403,7 +403,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
         int z = righty/reductionFactor; //y + height;
 
         if(width>height) //for some reason, without this condition I get segfault TODO:fix me
-        	IsolatePlate(matImg,z);
+        	IsolatePlate(matImg,z, x, y);
 	}
 }
 

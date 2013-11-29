@@ -28,6 +28,17 @@ typedef struct asphaltInfo{
 
 extern clock_t timeBetweenPlates;
 
+extern int mouseClicks;
+extern int frame;
+extern Point currentClick, previewsClick;
+extern Vector<Point> platesInFrame;
+
+extern int algX;
+extern int algY;
+extern int algWidth;
+extern int algHeight;
+extern ifstream myfile;
+
 Mat EraseLine(Mat img, int segmentSize, int i, int j);
 Mat SurroundCar(Mat src,int i,int j,int segmentSize);
 Mat CannyThreshold(Mat src, int lowThreshold);
@@ -39,7 +50,7 @@ Mat TransitionToShadow(Mat input, int uBoundary);
 Mat ExludeFalseShadowPixels(Mat input, Size size);
 void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor);
 Mat localSTD(Mat input, Mat xi, Mat xi2, int ind);
-void IsolatePlate(Mat input, int z);
+void IsolatePlate(Mat input,int z, int x, int y);
 void SearchForShadow(Mat src,int uBoundary);
 int SizeOfCar(Mat *smallerImg, int y, int x);
 bool PixelBelongToSegment(Mat dst, int i, int j);

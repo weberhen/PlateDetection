@@ -3,5 +3,4 @@
 
 #include "ShadowDetector.hpp"
 
-
 #endif

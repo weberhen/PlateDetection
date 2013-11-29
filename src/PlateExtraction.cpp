@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 
 
-void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
+void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, int x, int y)
 {
 //	namedWindow("plate",WINDOW_AUTOSIZE);
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
@@ -126,7 +126,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 		if((width > height*2.5) &&
 		   (width < height*4) &&
 		   (width>25)&&(height>15)&&
-		   (width<matLabelImg.cols/2))
+		   (width<matLabelImg.cols/1.5))
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
 		    Mat plate = sizeOriginal(myROI);
@@ -138,7 +138,12 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z)
 			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>20){
 				timeBetweenPlates=clock();
-		    	imshow("final_plate",plate);	
+		    	imshow("final_plate",plate);
+		    	//I have to sum with the previews value because it is the x,y relative to the rear of the car, and I will compare with the original image coordinates
+		    	algX = cmin + x;
+				algY = rmin + y;
+				algWidth = width;
+				algHeight = height;	
 			}
 		    
 		   // waitKey();	
