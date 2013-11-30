@@ -12,6 +12,13 @@ int algX;
 int algY;
 int algWidth;
 int algHeight;
+
+int totalRealPlates;
+int totalAlgPlates;
+int falsePositives;
+int falseNegatives;
+int gotHolePlate;
+
 ifstream myfile ("plates.txt");
 
 int main(int argc, char** argv)
@@ -21,6 +28,12 @@ int main(int argc, char** argv)
 	bool debugMode = false;
 	bool manualPlateCapture=false;
 	
+	totalRealPlates=0;
+	totalAlgPlates=0;
+	gotHolePlate=0;
+
+
+
 	structAsphaltInfo _structAsphaltInfo;
 	namedWindow("sss",WINDOW_AUTOSIZE);
 	//clock_t t, old_t = 0;
@@ -37,15 +50,20 @@ int main(int argc, char** argv)
 		}
 
 		stream >> src;
-		cv::Rect myROI(0,0,src.cols, 220);
+		 cv::Rect myROI;
 		bool alreadyCalled = false;
 		setMouseCallback("sss",on_mouse, &currentClick );
 		while(1)
 	    	{
 	 		//t = clock();
-
+	    	
+	    	if((frame<2550)&&(frame<4000))
+	    		myROI = cv::Rect(0,0,src.cols, 220);
+	    	else
+	    		myROI = cv::Rect(0,0,src.cols, 200);
 	       	stream >> src;
 	       	frame++;
+	       	//cout<<frame<<endl;
 	       	if(src.empty()) 
 	       	{
 		       	std::cout << "Error reading video frame" << endl;
@@ -77,8 +95,9 @@ int main(int argc, char** argv)
 				}
 				SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 				
-				imshow("sss",src_gray(myROI));
+				//imshow("sss",src_gray(myROI));
 				calculateMetric();
+				cout<<"totalRealPlates: "<<totalRealPlates<<" totalAlgPlates: "<<totalAlgPlates<<" gotHolePlate: "<<gotHolePlate<<endl;
 				//cout<<algX<<" "<<algY<<" "<<algWidth<<" "<<algHeight<<endl;
 				algX=0;
 				algY=0;

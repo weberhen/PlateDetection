@@ -111,41 +111,38 @@ void calculateMetric()
 	string line;
 	if (myfile.is_open())
 	{
-	if( getline (myfile,line) )
-	{
-			std::vector<std::string> x = split(line, ' ');
-			
-			int numberOfPlates=stoi(x[1]);
-			
-			for(int i=0;i<numberOfPlates;i++)
-			{
-				getline (myfile,line);
-				std::vector<std::string> coordFile = split(line, ' ');
-				realX = stoi(coordFile[0]);
-				realY = stoi(coordFile[1]);
-				realWidth = stoi(coordFile[2]);
-				realHeight = stoi(coordFile[3]);
+		if( getline (myfile,line) )
+		{
+				std::vector<std::string> x = split(line, ' ');
+				
+				int numberOfPlates=stoi(x[1]);
+				
+				for(int i=0;i<numberOfPlates;i++)
+				{
+					totalRealPlates++;
+					getline (myfile,line);
+					std::vector<std::string> coordFile = split(line, ' ');
+					realX = stoi(coordFile[0]);
+					realY = stoi(coordFile[1]);
+					realWidth = stoi(coordFile[2]);
+					realHeight = stoi(coordFile[3]);
 
-				cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
-				cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
-				waitKey();
-				Rect algRect(algX,algY,algWidth,algHeight);
-				Rect realRect(realX,realY,realWidth,realHeight);
-				Rect intersection = algRect & realRect;
-				cout<<"intersection: "<<intersection.area()<<endl;
+					//cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
+					//cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
+					//waitKey();
+					Rect algRect(algX,algY,algWidth,algHeight);
+					Rect realRect(realX,realY,realWidth,realHeight);
+					Rect intersection = algRect & realRect;
+					//cout<<"intersection: "<<intersection.area()<<endl;
 
-				float metric;
-				if(intersection.area()!=0)
-					metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)intersection.area();
-				else
-					metric = -1;
-				cout<<"metric gives "<<metric<<endl;
-			}
-
+					//(A-B)U(B-A)/(AUB)
+					float metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)(realRect.area()+algRect.area()-intersection.area());
+					
+					if((intersection.area()-realRect.area())==0)
+						gotHolePlate++;
+					cout<<"metric gives "<<metric<<endl;
+				}
+		}
 	}
-
-	}
-
-	
 }
 

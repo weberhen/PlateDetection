@@ -39,6 +39,12 @@ extern int algWidth;
 extern int algHeight;
 extern ifstream myfile;
 
+extern int totalRealPlates;
+extern int totalAlgPlates;
+extern int falsePositives;
+extern int falseNegatives;
+extern int gotHolePlate;
+
 Mat EraseLine(Mat img, int segmentSize, int i, int j);
 Mat SurroundCar(Mat src,int i,int j,int segmentSize);
 Mat CannyThreshold(Mat src, int lowThreshold);

@@ -79,6 +79,9 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	    int hthresh = 15;
 	    int rmin=-1;
 	    int rmax=-1;
+	    Vector<bool> ccRow; //used to find the biggest connected component in a Row
+	   
+
 	    for(unsigned int i=0;i<cumRows.size();i++)
 	    {
 	    	if(cumRows[i]>hthresh)
@@ -86,8 +89,14 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	    		if(rmin==-1)
 	    			rmin=i;
 	    		rmax=i;
+	    		ccRow.push_back(true);
 	    	}
+	    	else
+	    		ccRow.push_back(false);
 	    }
+	    RowColConnectedComponents(ccRow, &rmin, &rmax);
+	    //cout<<"rmin: "<<rmin<<" rmax: "<<rmax<<endl;
+	    //waitKey();
 	    //cout<<"rmin: "<<rmin<<" rmax: "<<rmax<<endl;
 	    	
 	    //
@@ -107,6 +116,8 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	    int vthresh = hthresh/3;
 	    int cmin=-1;
 	    int cmax=-1;
+	    Vector<bool> ccCol; //used to find the biggest connected component in a Collumn
+
 	    for(unsigned int i=0;i<cumCols.size();i++)
 	    {
 	    	if(cumCols[i]>vthresh)
@@ -114,8 +125,14 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	    		if(cmin==-1)
 	    			cmin=i;
 	    		cmax=i;
+	    		ccCol.push_back(true);
 	    	}
+	    	else
+	    		ccCol.push_back(false);
 	    }
+	    RowColConnectedComponents(ccCol, &cmin, &cmax);
+	    //cout<<"cmin: "<<cmin<<" cmax: "<<cmax<<endl;
+	    //waitKey();
 	    //cout<<"cmin: "<<cmin<<" cmax: "<<cmax<<endl;
 	    
 
@@ -125,8 +142,8 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 
 		if((width > height*2.5) &&
 		   (width < height*4) &&
-		   (width>25)&&(height>15)&&
-		   (width<matLabelImg.cols/1.5))
+		   (width>45)&&(height>15)&&
+		   (width<matLabelImg.cols/1.2))
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
 		    Mat plate = sizeOriginal(myROI);
@@ -144,6 +161,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 				algY = rmin + y;
 				algWidth = width;
 				algHeight = height;	
+				totalAlgPlates++;
 			}
 		    
 		   // waitKey();	
@@ -197,4 +215,33 @@ void printIplImage(const IplImage* src)
         }
         printf("\n");
     }
+}
+
+void RowColConnectedComponents(Vector<bool>ccVector, int *min, int *max)
+{
+	int ccRowIndexBegin=0;
+    int ccRowIndexEnd=0;
+	int ccRowSize=0;
+    int ccRowBiggestSize=0;
+
+    for(int i=0;i<ccVector.size();i++)
+    {
+    	if(ccVector[i]==true)
+    	{
+    		ccRowSize++;
+    	}
+    	else
+    	{
+    		if(ccRowSize>ccRowBiggestSize)
+    		{
+    			ccRowBiggestSize=ccRowSize;
+    			ccRowIndexBegin=i-ccRowBiggestSize;
+    			ccRowIndexEnd=i;
+    			ccRowSize=0;
+    		}
+    	}
+    	//cout<<"ccVector: "<<ccVector[i]<<" i: "<<i<<endl;
+    }
+    *min = ccRowIndexBegin;
+    *max = ccRowIndexEnd;
 }
