@@ -13,6 +13,7 @@ Point NeighborPixel(Point pos, int direction, Mat img);
 void on_mouse( int e, int x, int y, int d, void *ptr );
 void insertPlateCoordToFile(int frame, Vector<Point> coord);
 void calculateMetric();
+void InitializeParameters(char** argv);
 
 
 #endif

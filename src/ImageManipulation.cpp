@@ -137,12 +137,37 @@ void calculateMetric()
 
 					//(A-B)U(B-A)/(AUB)
 					float metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)(realRect.area()+algRect.area()-intersection.area());
-					
 					if((intersection.area()-realRect.area())==0)
+					{
 						gotHolePlate++;
-					cout<<"metric gives "<<metric<<endl;
+						meanMetricError=((meanMetricError*(float)(gotHolePlate-1)+metric)/gotHolePlate);
+					}
+					//cout<<"metric gives "<<metric<<endl;
 				}
 		}
 	}
 }
 
+void InitializeParameters(char** argv)
+{
+	frameChangeROI = stoi(argv[1]); //MainShadowDetector.. to set specific part of video where the ROI will change it height (4000)
+	percentil = atof(argv[2]); 
+	median = atof(argv[3]);
+	minSegmentSizeRatio = atof(argv[4]); //||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+	maxSegmentSizeRatio = atof(argv[5]); //||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+	minStdev = stoi(argv[6]);
+	//int width = cmax - cmin;
+	//int height = rmax - rmin;
+	minPlateWidthRatio = stoi(argv[7]); // 1.2
+	minPlateHeight = stoi(argv[8]); //15
+	maxPlateWidth = stoi(argv[9]);
+	maxPlateHeightRatio = stoi(argv[10]); //4
+	//int winy_size[3] = {1,2,3};
+	//int winx_size[3] = {1,1,2};
+	winy1 = stoi(argv[11]); 
+	winy2 = stoi(argv[12]);
+	winy3 = stoi(argv[13]);
+	winx1 = stoi(argv[14]);
+	winx2 = stoi(argv[15]);
+	winx3 = stoi(argv[16]);
+}

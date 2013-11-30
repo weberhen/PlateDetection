@@ -35,17 +35,6 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	
 	for (CvBlobs::const_iterator it=blobs.begin(); it!=blobs.end(); ++it)
 	{
-		//cout << "Blob #" << it->second->label << ": Area=" << it->second->area << ", Centroid=(" << it->second->centroid.x << ", " << it->second->centroid.y << ")" << endl;
-		/*double moment10 = it->second->m10;
-		double moment01 = it->second->m01;
-		double area = it->second->area;
-		//Variable for holding position
-		int x1;
-		int y1;
-		//Calculating the current position
-		x1 = moment10/area;
-		y1 = moment01/area;*/
-
 		unsigned int minx = it->second->minx; ///< X min.
 	    unsigned int maxx = it->second->maxx; ///< X max.
 	    unsigned int miny = it->second->miny; ///< Y min.
@@ -55,12 +44,6 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	    //maxx = (sizeOriginal.cols * maxx) / 80;
 	    //miny = (sizeOriginal.rows * miny) / original.rows;
 	    //maxy = (sizeOriginal.rows * maxy) / original.rows;
-
-	    
-		//cout<<"cols: "<<matLabelImg.cols<<" rows: "<<matLabelImg.rows<<" minx: "<<minx<<" maxx: "<<maxx<<endl;
-		//cout<<"miny: "<<miny<<" maxy: "<<maxy<<endl;
-		//imshow("labelImg",mat);
-		//waitKey();
 		
 		//
 		//finds comulative response along rows
@@ -141,9 +124,9 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 
 
 		if((width > height*2.5) &&
-		   (width < height*4) &&
-		   (width>45)&&(height>15)&&
-		   (width<matLabelImg.cols/1.2))
+		   (width < height*maxPlateHeightRatio) &&
+		   (width>45)&&(height>minPlateHeight)&&
+		   (width<matLabelImg.cols/minPlateWidthRatio))
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
 		    Mat plate = sizeOriginal(myROI);
@@ -153,9 +136,9 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 			cv::meanStdDev ( plate, mean, stddev );
 			double stddev_pxl = stddev.val[0];
 			//cout<<"stddev"<<stddev_pxl<<endl;
-			if(stddev_pxl>20){
+			if(stddev_pxl>minStdev){
 				timeBetweenPlates=clock();
-		    	imshow("final_plate",plate);
+		    	//imshow("final_plate",plate);
 		    	//I have to sum with the previews value because it is the x,y relative to the rear of the car, and I will compare with the original image coordinates
 		    	algX = cmin + x;
 				algY = rmin + y;

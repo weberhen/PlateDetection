@@ -254,7 +254,7 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 			else 
 			{
 				if(segmentSize<(0.10*input.cols)
-				||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+				||((segmentSize>i*maxSegmentSizeRatio) || (segmentSize<i*minSegmentSizeRatio)))
 					EraseLine(shadows, segmentSize, i, j);
 				segmentSize=0;
 			}
@@ -269,8 +269,8 @@ void IsolatePlate(Mat input,int z, int x, int y)
 {
 	//reduces the imagem to a fixed size. This way it wont spent more time in big images
 	//the fized size will be 80x(rows adjusted to the reduction proportion)
-	int colSizeReduced = 147;
-	int smallCols = colSizeReduced;
+	//int colSizeReduced = 147;
+	//int smallCols = colSizeReduced;
 	//the reduction of rows depends on the % of reduction of the cols. 
 	//int smallRows = input2.rows*(float)((float)smallCols/(float)input2.cols);
 	//the z axis must be also updated
@@ -293,8 +293,8 @@ void IsolatePlate(Mat input,int z, int x, int y)
 	Mat xi,xi2;
 	cv::integral(xMat, xi, xi2, CV_64F);
 	
-	int winy_size[3] = {1,2,3};
-	int winx_size[3] = {1,2,3};
+	int winy_size[3] = {winy1,winy2,winy3};
+	int winx_size[3] = {winx1,winx2,winx3};
 
 	int scols = input.cols;
 	int srows = input.rows;
@@ -338,7 +338,7 @@ void IsolatePlate(Mat input,int z, int x, int y)
 
 	//CalcHistogram( so );
 	//cout<<"cols: "<<so.cols<<" rows: "<<so.rows<<" so.rows*0.5: "<<so.rows*0.5<<" so.cols*0.5: "<<so.cols*0.5<<" so.rows*0.9: "<<so.rows*0.9<<" so.cols*0.9: "<<so.cols*0.9<<endl;
-	float T = 0.5*(so.at<float>(so.rows*0.5,so.cols*0.5)+(so.at<float>(so.rows*0.9,so.cols*0.9)));
+	float T = 0.5*(so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
 	
 	for(int i=0;i<srows;i++){
 		for(int j=0;j<scols;j++)
@@ -349,8 +349,8 @@ void IsolatePlate(Mat input,int z, int x, int y)
 				input.at<float>(i,j)=255.;
 		}
 	}
-	namedWindow("step",	WINDOW_AUTOSIZE);
-	imshow("step",input);
+	//namedWindow("step",	WINDOW_AUTOSIZE);
+	//imshow("step",input);
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
 	
 	ConnectedComponents(input, original, original, z, x, y);
@@ -390,10 +390,8 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		
 		Mat matImg = input(myROI);
 
-		namedWindow("bug",WINDOW_AUTOSIZE);
-		//if(x==426){
-			imshow("bug",matImg);
-		//	waitKey();}
+		//namedWindow("bug",WINDOW_AUTOSIZE);
+		//imshow("bug",matImg);
 
 		Mat original = matImg.clone();
         intact = matImg.clone();
@@ -402,7 +400,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
         //being evaluated through its position in the image
         int z = righty/reductionFactor; //y + height;
 
-        if(width>height) //for some reason, without this condition I get segfault TODO:fix me
+        if((width>height)&&(z>(matImg.rows/2))) //for some reason, without this condition I get segfault TODO:fix me
         	IsolatePlate(matImg,z, x, y);
 	}
 }

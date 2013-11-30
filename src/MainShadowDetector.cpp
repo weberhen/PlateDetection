@@ -8,6 +8,32 @@ int frame=0;
 Point currentClick, previewsClick;
 Vector<Point> platesInFrame;
 
+//////////////////////////////////////////////////////////////
+//parameters to be seted by the user (to reach the best performance)
+ int frameChangeROI;
+ float percentil;
+ float median;
+ float minSegmentSizeRatio;
+ float maxSegmentSizeRatio;
+ int minStdev;
+//int width = cmax - cmin;
+//int height = rmax - rmin;
+ int minPlateWidthRatio;
+ int minPlateHeight;
+ int maxPlateWidth;
+ int maxPlateHeightRatio;
+//int winy_size[3] = {1,2,3};
+//int winx_size[3] = {1,1,2};
+ int winy1;
+ int winy2;
+ int winy3;
+ int winx1;
+ int winx2;
+ int winx3;
+
+
+//////////////////////////////////////////////////////////////
+
 int algX;
 int algY;
 int algWidth;
@@ -18,12 +44,13 @@ int totalAlgPlates;
 int falsePositives;
 int falseNegatives;
 int gotHolePlate;
+float meanMetricError;
 
 ifstream myfile ("plates.txt");
 
 int main(int argc, char** argv)
 {
-
+	InitializeParameters(argv);
 	Mat src_gray, src;
 	bool debugMode = false;
 	bool manualPlateCapture=false;
@@ -31,11 +58,11 @@ int main(int argc, char** argv)
 	totalRealPlates=0;
 	totalAlgPlates=0;
 	gotHolePlate=0;
-
+	meanMetricError=0;
 
 
 	structAsphaltInfo _structAsphaltInfo;
-	namedWindow("sss",WINDOW_AUTOSIZE);
+	//namedWindow("sss",WINDOW_AUTOSIZE);
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
@@ -56,8 +83,12 @@ int main(int argc, char** argv)
 		while(1)
 	    	{
 	 		//t = clock();
-	    	
-	    	if((frame<2550)&&(frame<4000))
+	    	if(totalRealPlates==2975)
+	    	{
+	    		cout<<"totalRealPlates: "<<totalRealPlates<<" totalAlgPlates: "<<totalAlgPlates<<" gotHolePlate: "<<gotHolePlate<<" meanMetricError: "<<meanMetricError<<endl;
+	    		return 0;
+	    	}
+	    	if((frame<2550)&&(frame>frameChangeROI))
 	    		myROI = cv::Rect(0,0,src.cols, 220);
 	    	else
 	    		myROI = cv::Rect(0,0,src.cols, 200);
@@ -97,7 +128,6 @@ int main(int argc, char** argv)
 				
 				//imshow("sss",src_gray(myROI));
 				calculateMetric();
-				cout<<"totalRealPlates: "<<totalRealPlates<<" totalAlgPlates: "<<totalAlgPlates<<" gotHolePlate: "<<gotHolePlate<<endl;
 				//cout<<algX<<" "<<algY<<" "<<algWidth<<" "<<algHeight<<endl;
 				algX=0;
 				algY=0;

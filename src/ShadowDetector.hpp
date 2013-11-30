@@ -44,6 +44,33 @@ extern int totalAlgPlates;
 extern int falsePositives;
 extern int falseNegatives;
 extern int gotHolePlate;
+extern float meanMetricError;
+
+//////////////////////////////////////////////////////////////
+//parameters to be seted by the user (to reach the best performance)
+extern int frameChangeROI;
+extern float percentil;
+extern float median;
+extern float minSegmentSizeRatio;
+extern float maxSegmentSizeRatio;
+extern int minStdev;
+//int width = cmax - cmin;
+//int height = rmax - rmin;
+extern int minPlateWidthRatio;
+extern int minPlateHeight;
+extern int maxPlateWidth;
+extern int maxPlateHeightRatio;
+//int winy_size[3] = {1,2,3};
+//int winx_size[3] = {1,1,2};
+extern int winy1;
+extern int winy2;
+extern int winy3;
+extern int winx1;
+extern int winx2;
+extern int winx3;
+
+
+//////////////////////////////////////////////////////////////
 
 Mat EraseLine(Mat img, int segmentSize, int i, int j);
 Mat SurroundCar(Mat src,int i,int j,int segmentSize);
