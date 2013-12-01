@@ -400,7 +400,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
         //being evaluated through its position in the image
         int z = righty/reductionFactor; //y + height;
 
-        if((width>height)&&(z>(matImg.rows/2))) //for some reason, without this condition I get segfault TODO:fix me
+        if((width>height)&&(z>(matImg.rows/2.5))) //for some reason, without this condition I get segfault TODO:fix me
         	IsolatePlate(matImg,z, x, y);
 	}
 }

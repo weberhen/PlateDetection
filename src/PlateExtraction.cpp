@@ -122,11 +122,15 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	    int width = cmax - cmin;
 		int height = rmax - rmin;
 
+		float tg11 = 0.1909; //tangent of 11o
+		float opp = width/2;
 
 		if((width > height*2.5) &&
-		   (width < height*maxPlateHeightRatio) &&
-		   (width>45)&&(height>minPlateHeight)&&
-		   (width<matLabelImg.cols/minPlateWidthRatio))
+		   	(width < height*maxPlateHeightRatio) &&
+		   	(width>45)&&(height>minPlateHeight)&&
+		   	(((opp/(float)z) < (tg11*2))&&
+			(((opp/(float)z) > (tg11*0.8)))) &&
+		   	(width<matLabelImg.cols/minPlateWidthRatio))
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
 		    Mat plate = sizeOriginal(myROI);
@@ -146,8 +150,6 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 				algHeight = height;	
 				totalAlgPlates++;
 			}
-		    
-		   // waitKey();	
 		}
 	    
 		/*
