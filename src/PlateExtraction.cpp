@@ -28,7 +28,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 	//Rendering the blobs
 	cvRenderBlobs(labelImg,blobs,img32original,dst);
 	Mat matLabelImg(labelImg);
-	cvFilterByArea(blobs,300,100000);
+	cvFilterByArea(blobs,minPlateArea,maxPlateArea);
 	//cout<<"how many blobs? "<<blobs.size()<<endl;
 	//namedWindow("labelImg",WINDOW_AUTOSIZE);
 	//cvShowImage("im8",labelImg);	
@@ -149,6 +149,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 				algWidth = width;
 				algHeight = height;	
 				totalAlgPlates++;
+				//cout<<"y: "<<y<<" z: "<<z<<" width*height: "<<width*height<<endl;
 			}
 		}
 	    

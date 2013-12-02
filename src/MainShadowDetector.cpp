@@ -30,7 +30,8 @@ Vector<Point> platesInFrame;
  int winx1;
  int winx2;
  int winx3;
-
+ int minPlateArea;
+ int maxPlateArea;
 
 //////////////////////////////////////////////////////////////
 
@@ -45,6 +46,9 @@ int falsePositives;
 int falseNegatives;
 int gotHolePlate;
 float meanMetricError;
+int MinimunIntersection;
+
+int realX,realY,realWidth,realHeight;
 
 ifstream myfile ("plates.txt");
 
@@ -59,6 +63,9 @@ int main(int argc, char** argv)
 	totalAlgPlates=0;
 	gotHolePlate=0;
 	meanMetricError=0;
+	falsePositives=0;
+	falseNegatives=0;
+	MinimunIntersection=0;
 
 
 	structAsphaltInfo _structAsphaltInfo;
@@ -84,8 +91,11 @@ int main(int argc, char** argv)
 	    	{
 	 		//t = clock();
 	    	if(totalRealPlates==2975)
-	    	{
+	    	{	
+	    		falsePositives= totalAlgPlates- MinimunIntersection;
+	    		falseNegatives= totalRealPlates - MinimunIntersection;
 	    		cout<<"totalRealPlates: "<<totalRealPlates<<" totalAlgPlates: "<<totalAlgPlates<<" gotHolePlate: "<<gotHolePlate<<" meanMetricError: "<<meanMetricError<<endl;
+	    		cout<<"falsePositives: "<<falsePositives<<" falseNegatives: "<<falseNegatives<<endl;
 	    		return 0;
 	    	}
 	    	if((frame<2550)&&(frame>frameChangeROI))
@@ -127,7 +137,28 @@ int main(int argc, char** argv)
 				SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 				
 				//imshow("sss",src_gray(myROI));
-				calculateMetric();
+				float metric = calculateMetric();
+				/*if(metric>10000)
+				{
+					metric-=10000;
+					cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
+					cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
+					cv::Rect r1(realX,realY,realWidth,realHeight);
+					cv::Rect r2(algX,algY,algWidth,algHeight);
+					imwrite("alg80p.png",src_gray(r2));
+					imwrite("real80p.png",src_gray(r1));
+					
+				}*/
+				/*if((metric > 0.5) && (metric < 0.6))// && ((realHeight*realWidth)>1700))
+				{
+					cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
+					cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
+					cv::Rect r1(realX,realY,realWidth,realHeight);
+					cv::Rect r2(algX,algY,algWidth,algHeight);
+					imwrite("algCrop.png",src_gray(r2));
+					imwrite("realCrop.png",src_gray(r1));
+					waitKey();
+				}*/
 				//cout<<algX<<" "<<algY<<" "<<algWidth<<" "<<algHeight<<endl;
 				algX=0;
 				algY=0;

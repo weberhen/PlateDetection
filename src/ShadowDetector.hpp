@@ -45,6 +45,11 @@ extern int falsePositives;
 extern int falseNegatives;
 extern int gotHolePlate;
 extern float meanMetricError;
+extern int MinimunIntersection;
+extern int realX;
+extern int realY;
+extern int realWidth;
+extern int realHeight;
 
 //////////////////////////////////////////////////////////////
 //parameters to be seted by the user (to reach the best performance)
@@ -68,7 +73,8 @@ extern int winy3;
 extern int winx1;
 extern int winx2;
 extern int winx3;
-
+extern int minPlateArea;
+extern int maxPlateArea;
 
 //////////////////////////////////////////////////////////////
 

@@ -105,9 +105,9 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-void calculateMetric()
+float calculateMetric()
 {
-	int realX,realY,realWidth,realHeight;
+	float metric;
 	string line;
 	if (myfile.is_open())
 	{
@@ -136,16 +136,28 @@ void calculateMetric()
 					//cout<<"intersection: "<<intersection.area()<<endl;
 
 					//(A-B)U(B-A)/(AUB)
-					float metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)(realRect.area()+algRect.area()-intersection.area());
-					if((intersection.area()-realRect.area())==0)
+					metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)(realRect.area()+algRect.area()-intersection.area());
+					if(intersection.area()>(realRect.area()*0.8))
 					{
 						gotHolePlate++;
 						meanMetricError=((meanMetricError*(float)(gotHolePlate-1)+metric)/gotHolePlate);
+						//cout<<"HolePlate"<<endl;
+					}
+					/*if((intersection.area()<(realRect.area()*0.85))&&intersection.area()>0)
+					{
+						metric+=10000;
+						cout<<"foi"<<endl;
+					}*/
+						
+					if(intersection.area()>0)
+					{
+						MinimunIntersection++;
 					}
 					//cout<<"metric gives "<<metric<<endl;
 				}
 		}
 	}
+	return metric;
 }
 
 void InitializeParameters(char** argv)
@@ -170,4 +182,6 @@ void InitializeParameters(char** argv)
 	winx1 = stoi(argv[14]);
 	winx2 = stoi(argv[15]);
 	winx3 = stoi(argv[16]);
+	minPlateArea = stoi(argv[17]);
+	maxPlateArea = stoi(argv[18]);
 }

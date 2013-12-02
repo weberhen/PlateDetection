@@ -32,16 +32,16 @@ int CalcHistogram( Mat src)
   sort(v.begin(),v.end());
   float max = v[v.size()-1];
   float reductionFactor = (float)(max/(float)255);
-  Mat finalHist(max,255,CV_32F);
+  Mat finalHist(255,258,CV_32F);
   
   namedWindow("finalHist",WINDOW_AUTOSIZE);
   IplImage * finalIPL = new IplImage(finalHist);
   
-  for(int i=0;i<v.size();i++)
-  {cout<<"inserindo: "<<v[i]<<endl;
+  for(int i=0;i<258;i++)
+  {cout<<"inserindo: "<<v[i]/reductionFactor<<endl;
     cvLine( finalIPL,
-          cvPoint(i,0),
-          cvPoint(i,v[i]),
+          cvPoint(max/reductionFactor,i),
+          cvPoint(max/reductionFactor-v[i]/reductionFactor,i),
           Scalar(122,0,255), 1, CV_AA);
     //cvLine( finalIPL,
       // cvPoint(1,0),
@@ -50,9 +50,13 @@ int CalcHistogram( Mat src)
     
   }
 
+  //rotating image in 180o
+
+
+
   cvShowImage("finalHist",finalIPL);
   waitKey();
-  cvSaveImage("adesivoHist.png",finalIPL);
+  cvSaveImage("soPlacaHist.png",finalIPL);
   //cvSaveImage("soPlacaHist.png",finalIPL);
   cout<<"hei: "<<v.size()<<endl;
   
