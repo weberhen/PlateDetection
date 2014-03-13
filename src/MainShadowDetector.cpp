@@ -50,7 +50,7 @@ int MinimunIntersection;
 
 int realX,realY,realWidth,realHeight;
 
-ifstream myfile ("plates.txt");
+ifstream myfile ("carlos_gomes_1410.txt");
 
 int main(int argc, char** argv)
 {
@@ -69,7 +69,8 @@ int main(int argc, char** argv)
 
 
 	structAsphaltInfo _structAsphaltInfo;
-	//namedWindow("sss",WINDOW_AUTOSIZE);
+	if(manualPlateCapture)
+		namedWindow("sss",WINDOW_AUTOSIZE);
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
@@ -90,7 +91,10 @@ int main(int argc, char** argv)
 		while(1)
 	    	{
 	 		//t = clock();
-	    	if(totalRealPlates==2975)
+	    	
+
+
+	    /*	if(frame==3069)
 	    	{	
 	    		falsePositives= totalAlgPlates- MinimunIntersection;
 	    		falseNegatives= totalRealPlates - MinimunIntersection;
@@ -98,10 +102,14 @@ int main(int argc, char** argv)
 	    		cout<<"falsePositives: "<<falsePositives<<" falseNegatives: "<<falseNegatives<<endl;
 	    		return 0;
 	    	}
-	    	if((frame<2550)&&(frame>frameChangeROI))
+		*/
+
+
+
+	    	//if((frame<2550)&&(frame>frameChangeROI))
+	    	//	myROI = cv::Rect(0,0,src.cols, 220);
+	    	//else
 	    		myROI = cv::Rect(0,0,src.cols, 220);
-	    	else
-	    		myROI = cv::Rect(0,0,src.cols, 200);
 	       	stream >> src;
 	       	frame++;
 	       	//cout<<frame<<endl;
@@ -110,6 +118,7 @@ int main(int argc, char** argv)
 		       	std::cout << "Error reading video frame" << endl;
 		    }
 		    //setting manually the plates for validation purposes
+		    //the "frames" condition is here to allow that the manual plate detection can start at any frame
 			if(manualPlateCapture && frame>0)
 			{
 				cvtColor(src,src_gray,CV_BGR2GRAY);
@@ -129,15 +138,19 @@ int main(int argc, char** argv)
 					//cout<<"too long"<<endl;
 					_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
 					if(_structAsphaltInfo.median<100)
-						_structAsphaltInfo.median=100;
+						_structAsphaltInfo.median=130;
 					timeBetweenPlates=clock();
 					alreadyCalled=true;
 					//cout<<"median is now "<<_structAsphaltInfo.median<<endl;
 				}
 				SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
 				
-				//imshow("sss",src_gray(myROI));
-				float metric = calculateMetric();
+				imshow("sss",src_gray(myROI));
+				
+				//uncomment to take metrics
+				//float metric = calculateMetric();
+				
+
 				/*if(metric>10000)
 				{
 					metric-=10000;
