@@ -24,7 +24,7 @@ int CalcHistogram( Mat src)
     }
   }
 
-  for(int i=0;i<todos.size();i+=jump)
+  for(uint i=0;i<todos.size();i+=jump)
   {
     //if(todos[i]!=0)
       v.push_back(todos[i]);

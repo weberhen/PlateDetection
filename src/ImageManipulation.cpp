@@ -63,10 +63,10 @@ void on_mouse( int e, int x, int y, int d, void *ptr )
 void insertPlateCoordToFile(int frame, Vector<Point> coord)
 {
 
-	FILE * pFile;
+	FILE * pFile=0;
 	//pFile = fopen ("plates.txt", "a+");
 	//writing the frame number and the number of plates marked at this frame
-	fprintf (pFile, "%d %d\n",frame,coord.size()/2);
+	fprintf (pFile, "%d %lu\n",frame,coord.size()/2);
 	if(coord.size()>1)
 	{
 		for(unsigned int i=0;i<coord.size()-1;i+=2)
@@ -107,7 +107,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
 
 float calculateMetric()
 {
-	float metric;
+	float metric=-1;
 	string line;
 	if (myfile.is_open())
 	{

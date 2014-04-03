@@ -12,6 +12,14 @@ double Deviation(vector<int> v, double ave)
     return sqrt(inverse * E);
 }
 
+//input: angle in grades
+//output: same angle in radians
+float radians(float grades)
+{
+  float PI = 3.14159265;
+  return grades * PI / 180.0;
+}
+
 //AVERAGE
 double Average(vector<int> v)
 {      int sum=0;

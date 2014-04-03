@@ -121,6 +121,8 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 
 	    int width = cmax - cmin;
 		int height = rmax - rmin;
+		
+		
 
 		float tg11 = 0.1909; //tangent of 11o
 		float opp = width/2;
@@ -142,13 +144,18 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>minStdev){
 				timeBetweenPlates=clock();
-		    	//imshow("final_plate",plate);
+		    	imshow("final_plate",plate);
 		    	//I have to sum with the previews value because it is the x,y relative to the rear of the car, and I will compare with the original image coordinates
 		    	algX = cmin + x;
 				algY = rmin + y;
 				algWidth = width;
 				algHeight = height;	
 				totalAlgPlates++;
+
+				//printf("xim: %d yim: %d\n", algX,algY);
+				//waitKey();
+
+
 				//cout<<"y: "<<y<<" z: "<<z<<" width*height: "<<width*height<<endl;
 			}
 		}
@@ -210,7 +217,7 @@ void RowColConnectedComponents(Vector<bool>ccVector, int *min, int *max)
 	int ccRowSize=0;
     int ccRowBiggestSize=0;
 
-    for(int i=0;i<ccVector.size();i++)
+    for(uint i=0;i<ccVector.size();i++)
     {
     	if(ccVector[i]==true)
     	{

@@ -58,6 +58,8 @@ int main(int argc, char** argv)
 	Mat src_gray, src;
 	bool debugMode = false;
 	bool manualPlateCapture=false;
+
+	//
 	
 	totalRealPlates=0;
 	totalAlgPlates=0;

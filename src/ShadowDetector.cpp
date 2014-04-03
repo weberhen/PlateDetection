@@ -1,5 +1,8 @@
 #include "ShadowDetector.hpp"
 #include <stdlib.h>
+#include <math.h>
+
+#define PI 3.14159265
 
 Mat src_gray;
 Mat dst, detected_edges;
@@ -357,9 +360,105 @@ void IsolatePlate(Mat input,int z, int x, int y)
 	    
 }
 
-void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
+void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 {
-	Mat intact;
+
+	for(unsigned int i =0;i<lines.size();i++) //iterates over the shadows
+	{
+		int leftx,righty;//,lefty,rightx;
+		Vec4i l = lines[i];
+		//lefty=l[1];
+		//rightx=l[2];
+		leftx=l[0];
+		righty=l[3];
+
+		waitKey();
+		//Old format of determine the ROI above the shadow.
+		//Now the shadow coordinates (that is at the ground plane) will be converted to world coords
+		
+		/*CAMERA TRANSFORMATIONS*/
+		
+		// Dado um ponto (u,v) na imagem no ground plane, projeta para (y,z,0) no
+		// mundo. Dadas uma altura hbase, re-projeta uma placa com dimensoes wplate
+		// x hplate na posicao (y,z,hbase)
+		float u,v; //coordinates of the bottom-left corner of the shadow
+		//In this case, these are the coordinates of the bottom-left corner of the shadow
+		//IN RELATION TO the center of the image
+		u=(leftx)/reductionFactor - hole_img.cols/2;
+		v=(righty)/reductionFactor - hole_img.rows/2;
+						
+		//The angle that the camera does in relation to the z axis
+		float alpha_grades = -6.0;
+		float alpha = radians(alpha_grades);
+		
+		//focal lenght. The one from the raspberry pi camera is f=3.6 mm
+		float f = 0.0036;
+
+		//pixel size. The raspberry py camera has the same width and height of 0.035262346cm
+		float pixel_size = 0.00035262346;
+
+		//tangent of angle beta_zero between the principal axis and base of the shadow
+		float tan_beta_zero = (v*pixel_size)/f;
+		float beta_zero = atan(tan_beta_zero);
+		
+		float beta = beta_zero + (90.0+alpha_grades);
+
+		//height of the camera relative to the ground(meters)
+		float h=1.4;
+		
+		// xc = [R -RT]
+		//		[0   1]
+		//simple rotation matrix
+		Mat R = (Mat_<float>(3,3)<<
+			cos(alpha),-sin(alpha), 0,
+			sin(alpha), cos(alpha), 0,
+			         0,          0, 1); 
+
+		//translation "vector". It is the position of the camera in world coords
+		Mat T = (Mat_<float>( 3, 1) << h, 0, 0); 
+
+		// The "-RT" part of the complete rotation $ translation matrix
+		T = R*(-T); 
+
+		//TODO: estimates in image coords where begin to search for plates!!!!!!!!!!!!
+
+		//complete rotation & translation matrix 
+		Mat Rx = (Mat_<float>( 4, 4) << 
+			cos(alpha),-sin(alpha), 0, T.at<float>(0,0),
+			sin(alpha), cos(alpha), 0, T.at<float>(1,0),
+			         0,          0, 1, T.at<float>(2,0),
+			         0,          0, 0,               1); 
+
+		//calculating the distance between the camera (or Distance from Base(DfB))
+		//and the shadow (parallel to the ground). 
+		float DfB = h * tan(radians(beta));
+		cout<<"DfB is: "<<DfB<<endl;
+
+		//calculating the Distance to Shadow (DtS)
+		float DtS = h / cos(radians(beta));
+		cout<<"DtS is: "<<DtS<<endl;
+
+		//min_height is the minimum height where the plate will be searched(in world coords)
+		float min_height = 0.5;
+		float tan_theta = DfB/(h-min_height);
+		float theta = atan(tan_theta);
+
+		//the point in image coordinates that we want to know the correspondent world coordinate point
+		Mat Pim = (Mat_<float>( 4, 1) << 0.8152, 11.666, 3, 1);
+
+		//the world coordinate point of the Pim
+		Mat Pw(4,1,CV_32F);
+
+		//solving the Linear System with LU Decomposition
+		solve(Rx, Pim, Pw, DECOMP_LU);
+
+		//cout << "Rx = "<< endl << " "  << Rx << endl << endl;
+
+		//cout << "T = "<<endl<< " " << T <<endl << endl;
+		//cout << "Pw = "<<endl<< " " << Pw <<endl << endl;
+		waitKey();
+	}
+	/*Mat intact;
 	int leftx,lefty,rightx,righty;
 	for(unsigned int i =0;i<lines.size();i++)
 	{
@@ -375,7 +474,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		width=width*0.85; //reduces the width's ROI in 15% 
 		x=x+width*0.15;   //reduces the x axis of the ROI in 15% 
 		//height=height*0.9; //discard the shadow of the vehicule
-		//cout<<"input x: "<<input.cols<<" input y: "<<input.rows<<endl;
+		//cout<<"hole_img x: "<<hole_img.cols<<" hole_img y: "<<hole_img.rows<<endl;
 		//cout<<"x: "<<x<<"y: "<<y<<"width: "<<width<<"height: "<<height<<endl;
 		
 		float tg16 = 0.6; //tangent of 16o
@@ -388,7 +487,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
 		
 		vector<vector<Point> > squares;
 		
-		Mat matImg = input(myROI);
+		Mat matImg = hole_img(myROI);
 
 		//namedWindow("bug",WINDOW_AUTOSIZE);
 		//imshow("bug",matImg);
@@ -403,6 +502,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat input, float reductionFactor)
         if((width>height)&&(z>(matImg.rows/2.5))) //for some reason, without this condition I get segfault TODO:fix me
         	IsolatePlate(matImg,z, x, y);
 	}
+	*/
 }
 
 void SearchForShadow(Mat src,int uBoundary)
