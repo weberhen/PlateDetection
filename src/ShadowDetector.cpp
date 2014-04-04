@@ -268,23 +268,8 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input,int z, int x, int y)
+void IsolatePlate(Mat input, int x, int y)
 {
-	//reduces the imagem to a fixed size. This way it wont spent more time in big images
-	//the fized size will be 80x(rows adjusted to the reduction proportion)
-	//int colSizeReduced = 147;
-	//int smallCols = colSizeReduced;
-	//the reduction of rows depends on the % of reduction of the cols. 
-	//int smallRows = input2.rows*(float)((float)smallCols/(float)input2.cols);
-	//the z axis must be also updated
-	//cout<<"z before: "<<z<<" rows before: "<<input2.rows<<endl;
-	//z = (float)z*(float)((float)smallRows/(float)input2.rows);
-	
-	//Size smallSize(smallCols,smallRows);
-	//Mat input;
-	//cout<<smallRows<<" "<<smallCols<<endl;
-	//resize(input2,input,smallSize,0,0,INTER_CUBIC);
-	
 	Mat original = input.clone();
 	
 	input.convertTo(input, CV_32F);
@@ -353,156 +338,186 @@ void IsolatePlate(Mat input,int z, int x, int y)
 		}
 	}
 	//namedWindow("step",	WINDOW_AUTOSIZE);
-	//imshow("step",input);
+	
+	//waitKey();
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
 	
-	ConnectedComponents(input, original, original, z, x, y);
+	ConnectedComponents(input, original, original, x, y);
 	    
 }
 
 void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 {
-
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//CAMERA PROJECTION
+	//%
+	//%  Sistema de coordenadas do mundo: (altura, largura, profundidade) (x,y,z)
+	//%  Sistema de coordenadas da imagem: (vertical, horizontal) (u,v)
+	//%
+	int leftx,righty,rightx,lefty;
+	float hbase_min, hbase_max;
 	for(unsigned int i =0;i<lines.size();i++) //iterates over the shadows
 	{
-		int leftx,righty;//,lefty,rightx;
-		Vec4i l = lines[i];
-		//lefty=l[1];
-		//rightx=l[2];
-		leftx=l[0];
-		righty=l[3];
-
-		waitKey();
-		//Old format of determine the ROI above the shadow.
-		//Now the shadow coordinates (that is at the ground plane) will be converted to world coords
+		//recover the coordinates (u,v) from the shadow
+		Vec4i l = lines[i]; 
+		//convert the values to the actual size of the picture
+		leftx=l[0]/reductionFactor;
+		lefty=l[1]/reductionFactor;
+		rightx=l[2]/reductionFactor;
+		righty=l[3]/reductionFactor;
 		
+		//height of the camera relative to the ground(meters)
+		float h=1.2;
+
 		/*CAMERA TRANSFORMATIONS*/
 		
 		// Dado um ponto (u,v) na imagem no ground plane, projeta para (y,z,0) no
 		// mundo. Dadas uma altura hbase, re-projeta uma placa com dimensoes wplate
 		// x hplate na posicao (y,z,hbase)
-		float u,v; //coordinates of the bottom-left corner of the shadow
-		//In this case, these are the coordinates of the bottom-left corner of the shadow
-		//IN RELATION TO the center of the image
-		u=(leftx)/reductionFactor - hole_img.cols/2;
-		v=(righty)/reductionFactor - hole_img.rows/2;
+		
+		//principal axis
+		float u0=hole_img.rows;
+		float v0=hole_img.cols;
 						
+		//The angle that the camera does in relation to the y axis
+		float beta_grades = -19.0;
+		float beta = radians(beta_grades);
+		
+		//focal lenght
+		float fu = 674.3;
+		float fv = 674.3;
+
 		//The angle that the camera does in relation to the z axis
-		float alpha_grades = -6.0;
+		float alpha_grades = 0;
 		float alpha = radians(alpha_grades);
+
+		//plate height(meters)
+		float hplate=0.13;
 		
-		//focal lenght. The one from the raspberry pi camera is f=3.6 mm
-		float f = 0.0036;
+		//plate width(meters)
+		float wplate=0.4;
 
-		//pixel size. The raspberry py camera has the same width and height of 0.035262346cm
-		float pixel_size = 0.00035262346;
+		//minimum height where the plate will be searched(meters)
+		float hbase_min_num = 0.3;
 
-		//tangent of angle beta_zero between the principal axis and base of the shadow
-		float tan_beta_zero = (v*pixel_size)/f;
-		float beta_zero = atan(tan_beta_zero);
+		//maximum height where the plate will be searched(meters) 
+		float hbase_max_num = 1.2;
+
+		float hbase= hbase_min_num;
+
+		//coordinates of the shadow
+		float u=righty;
+		float v=(rightx+leftx)/2;
+
+
+		//Matriz de rotação exata eixo x
+		Mat Rx = (Mat_<float>(3,3)<<
+			       1,          0, 0,
+			0, cos(alpha),-sin(alpha),
+			0, sin(alpha), cos(alpha)); 
 		
-		float beta = beta_zero + (90.0+alpha_grades);
-
-		//height of the camera relative to the ground(meters)
-		float h=1.4;
+		//Matriz de rotação exata eixo y
+		Mat Ry = (Mat_<float>(3,3)<<
+			cos(beta), 0, -sin(beta),
+			        0, 1,          0,
+			sin(beta), 0,  cos(beta));
 		
-		// xc = [R -RT]
-		//		[0   1]
-		//simple rotation matrix
-		Mat R = (Mat_<float>(3,3)<<
-			cos(alpha),-sin(alpha), 0,
-			sin(alpha), cos(alpha), 0,
-			         0,          0, 1); 
-
-		//translation "vector". It is the position of the camera in world coords
-		Mat T = (Mat_<float>( 3, 1) << h, 0, 0); 
-
-		// The "-RT" part of the complete rotation $ translation matrix
-		T = R*(-T); 
-
-		//TODO: estimates in image coords where begin to search for plates!!!!!!!!!!!!
-
-		//complete rotation & translation matrix 
-		Mat Rx = (Mat_<float>( 4, 4) << 
-			cos(alpha),-sin(alpha), 0, T.at<float>(0,0),
-			sin(alpha), cos(alpha), 0, T.at<float>(1,0),
-			         0,          0, 1, T.at<float>(2,0),
-			         0,          0, 0,               1); 
-
-		//calculating the distance between the camera (or Distance from Base(DfB))
-		//and the shadow (parallel to the ground). 
-		float DfB = h * tan(radians(beta));
-		cout<<"DfB is: "<<DfB<<endl;
-
-		//calculating the Distance to Shadow (DtS)
-		float DtS = h / cos(radians(beta));
-		cout<<"DtS is: "<<DtS<<endl;
-
-		//min_height is the minimum height where the plate will be searched(in world coords)
-		float min_height = 0.5;
-		float tan_theta = DfB/(h-min_height);
-		float theta = atan(tan_theta);
-
-		//the point in image coordinates that we want to know the correspondent world coordinate point
-		Mat Pim = (Mat_<float>( 4, 1) << 0.8152, 11.666, 3, 1);
-
-		//the world coordinate point of the Pim
-		Mat Pw(4,1,CV_32F);
-
-		//solving the Linear System with LU Decomposition
-		solve(Rx, Pim, Pw, DECOMP_LU);
-
-		//cout << "Rx = "<< endl << " "  << Rx << endl << endl;
-
-		//cout << "T = "<<endl<< " " << T <<endl << endl;
-		//cout << "Pw = "<<endl<< " " << Pw <<endl << endl;
-		waitKey();
-	}
-	/*Mat intact;
-	int leftx,lefty,rightx,righty;
-	for(unsigned int i =0;i<lines.size();i++)
-	{
-		Vec4i l = lines[i];
-		leftx=l[0];
-		lefty=l[1];
-		rightx=l[2];
-		righty=l[3];
-		int x = (leftx)/reductionFactor;
-		int y = (righty/3)/reductionFactor;
-		int width = (rightx-leftx)/reductionFactor;
-		int height = righty/reductionFactor-y;
-		width=width*0.85; //reduces the width's ROI in 15% 
-		x=x+width*0.15;   //reduces the x axis of the ROI in 15% 
-		//height=height*0.9; //discard the shadow of the vehicule
-		//cout<<"hole_img x: "<<hole_img.cols<<" hole_img y: "<<hole_img.rows<<endl;
-		//cout<<"x: "<<x<<"y: "<<y<<"width: "<<width<<"height: "<<height<<endl;
+		Mat Ra = (Mat_<float>(3,3));
 		
-		float tg16 = 0.6; //tangent of 16o
-		height = (float)(righty/reductionFactor)*tg16;
-		if(height>(righty/reductionFactor))
-			height=(righty/reductionFactor-y)*0.75;
+		//Matriz de rotação total (aproximada)
+		Ra = Ry*Rx;
+
+		//translation "vector". It is the position of the camera in world coordinatess
+		Mat X0 = (Mat_<float>( 3, 1) << h, 0, 0); 
+
+		//extracted from MATLAB
+		Mat XCl = (Mat_<float>( 3, 1)<<
+   			(h*sin(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta)) - cos(beta)*(h - hbase),
+            (fu*h*v0 - fu*h*v)/(fv*u0*cos(beta) - fv*u*cos(beta) + fu*fv*sin(beta)) - wplate/2,
+ 			-sin(beta)*(h - hbase) - (h*cos(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta)));
+
+		float uu = fu*XCl.at<float>(0)/XCl.at<float>(2);
+		float ubr = u0-uu;
+		float vv = fu*XCl.at<float>(1)/XCl.at<float>(2);
+		float vbr = vv+v0;
+
+		//extracted from MATLAB
+		Mat XCl2 = (Mat_<float>( 3, 1)<<
+		cos(beta)*(hbase - h + hplate) + (h*sin(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta)),
+        wplate/2 + (fu*h*v0 - fu*h*v)/(fv*u0*cos(beta) - fv*u*cos(beta) + fu*fv*sin(beta)),
+ 		sin(beta)*(hbase - h + hplate) - (h*cos(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta))
+ 		);
+
+ 		uu = fu*XCl2.at<float>(0)/XCl2.at<float>(2);
+		float utl = u0-uu;
+		vv = fu*XCl2.at<float>(1)/XCl2.at<float>(2);
+		float vtl = vv+v0;
 
 
-		cv::Rect myROI(x, y, width, height);
+		//ROI height
+		//min
+		hbase= hbase_min_num;
+		Mat XCl3 = (Mat_<float>( 3, 1)<<
+   		(h*sin(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta)) - cos(beta)*(h - hbase + (3*hplate)/2),
+        (fu*h*v0 - fu*h*v)/(fv*u0*cos(beta) - fv*u*cos(beta) + fu*fv*sin(beta)),
+ 		- sin(beta)*(h - hbase + (3*hplate)/2) - (h*cos(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta))
+ 		);
+ 
+ 		uu = fu*XCl3.at<float>(0)/XCl3.at<float>(2);
+		hbase_min = u0-uu;
 		
-		vector<vector<Point> > squares;
+		//ROI height
+		//max
+		hbase= hbase_max_num;
+		Mat XCl4 = (Mat_<float>( 3, 1)<<
+   		(h*sin(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta)) - cos(beta)*(h - hbase + (3*hplate)/2),
+        (fu*h*v0 - fu*h*v)/(fv*u0*cos(beta) - fv*u*cos(beta) + fu*fv*sin(beta)),
+ 		- sin(beta)*(h - hbase + (3*hplate)/2) - (h*cos(beta)*(fu*cos(beta) - u0*sin(beta) + u*sin(beta)))/(u0*cos(beta) - u*cos(beta) + fu*sin(beta))
+ 		);
+ 
+ 		uu = fu*XCl4.at<float>(0)/XCl4.at<float>(2);
+		hbase_max = u0-uu;
+		if(hbase_max<0)
+			hbase_max=0;
+
+		Point Pt1,Pt2;
+		Pt2.x=vtl;
+		Pt2.y=utl;
+		Pt1.x=vbr;
+		Pt1.y=ubr;
+
+		Point shadow2,shadow1;
+		shadow1.x=leftx;
+		shadow1.y=righty;
+		shadow2.x=rightx;
+		shadow2.y=righty;
 		
+		RNG rng(-1);
+		Scalar color=(255,155,255);
+		rectangle( hole_img, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+		line(hole_img,shadow1,shadow2,color,rng.uniform(1,1),CV_AA);
+
+		int x = leftx;
+		
+		int width = (rightx-leftx);
+		int height = hbase_min-hbase_max;
+		int y = righty-height;
+		if(y<0)
+			y=0;
+		cv::Rect myROI(x,y,width-1,height);
+		cout<<x<<" "<<y<<" "<<width<<" "<<height<<" "<<hbase_min<<" "<<hbase_max<<endl;
+		//cout<<hole_img.rows<<" "<<hole_img.cols<<endl;
+		//waitKey();
 		Mat matImg = hole_img(myROI);
 
-		//namedWindow("bug",WINDOW_AUTOSIZE);
-		//imshow("bug",matImg);
+		//imshow("step",matImg);
 
-		Mat original = matImg.clone();
-        intact = matImg.clone();
-        
-        //z is the distance between the camera and the car 
-        //being evaluated through its position in the image
-        int z = righty/reductionFactor; //y + height;
-
-        if((width>height)&&(z>(matImg.rows/2.5))) //for some reason, without this condition I get segfault TODO:fix me
-        	IsolatePlate(matImg,z, x, y);
+	    IsolatePlate(matImg, leftx, righty);
 	}
-	*/
+	
+	//////////////////////////////////////////////////////////////////////
+	
+	
 }
 
 void SearchForShadow(Mat src,int uBoundary)

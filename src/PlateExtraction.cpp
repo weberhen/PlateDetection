@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 
 
-void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, int x, int y)
+void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y)
 {
 //	namedWindow("plate",WINDOW_AUTOSIZE);
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
@@ -127,7 +127,10 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 		float tg11 = 0.1909; //tangent of 11o
 		float opp = width/2;
 
-		if((width > height*2.5) &&
+		//ATENTION!!!
+
+		//I JUST COMMENTED THIS PART BECAUSE OF THE Z THAT IS NOT USED ANYMORE. THE CODE ITSELF IS GOOD!!
+		/*if((width > height*2.5) &&
 		   	(width < height*maxPlateHeightRatio) &&
 		   	(width>45)&&(height>minPlateHeight)&&
 		   	(((opp/(float)z) < (tg11*2))&&
@@ -158,7 +161,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int z, in
 
 				//cout<<"y: "<<y<<" z: "<<z<<" width*height: "<<width*height<<endl;
 			}
-		}
+		}*/
 	    
 		/*
 		//correcting te values (because of the reduction to save time)

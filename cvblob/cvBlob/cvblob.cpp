@@ -146,32 +146,32 @@ namespace cvb
       int stepLbl = imgLabel->widthStep/(imgLabel->depth/8);
       int stepSrc = imgSource->widthStep/(imgSource->depth/8);
       int stepDst = imgDest->widthStep/(imgDest->depth/8);
-      int imgLabel_width = imgLabel->width;
-      int imgLabel_height = imgLabel->height;
+      //int imgLabel_width = imgLabel->width;
+      //int imgLabel_height = imgLabel->height;
       int imgLabel_offset = 0;
-      int imgSource_width = imgSource->width;
-      int imgSource_height = imgSource->height;
+      //int imgSource_width = imgSource->width;
+      //int imgSource_height = imgSource->height;
       int imgSource_offset = 0;
-      int imgDest_width = imgDest->width;
-      int imgDest_height = imgDest->height;
+      //int imgDest_width = imgDest->width;
+      //int imgDest_height = imgDest->height;
       int imgDest_offset = 0;
       if(imgLabel->roi)
       {
-	imgLabel_width = imgLabel->roi->width;
-	imgLabel_height = imgLabel->roi->height;
-	imgLabel_offset = (imgLabel->nChannels * imgLabel->roi->xOffset) + (imgLabel->roi->yOffset * stepLbl);
+      	//imgLabel_width = imgLabel->roi->width;
+      	//imgLabel_height = imgLabel->roi->height;
+      	imgLabel_offset = (imgLabel->nChannels * imgLabel->roi->xOffset) + (imgLabel->roi->yOffset * stepLbl);
       }
       if(imgSource->roi)
       {
-	imgSource_width = imgSource->roi->width;
-	imgSource_height = imgSource->roi->height;
-	imgSource_offset = (imgSource->nChannels * imgSource->roi->xOffset) + (imgSource->roi->yOffset * stepSrc);
+      	//imgSource_width = imgSource->roi->width;
+      	//imgSource_height = imgSource->roi->height;
+      	imgSource_offset = (imgSource->nChannels * imgSource->roi->xOffset) + (imgSource->roi->yOffset * stepSrc);
       }
       if(imgDest->roi)
       {
-	imgDest_width = imgDest->roi->width;
-	imgDest_height = imgDest->roi->height;
-	imgDest_offset = (imgDest->nChannels * imgDest->roi->xOffset) + (imgDest->roi->yOffset * stepDst);
+      	//imgDest_width = imgDest->roi->width;
+      	//imgDest_height = imgDest->roi->height;
+      	imgDest_offset = (imgDest->nChannels * imgDest->roi->xOffset) + (imgDest->roi->yOffset * stepDst);
       }
 
       CvLabel *labels = (CvLabel *)imgLabel->imageData + imgLabel_offset + (blob->miny * stepLbl);
@@ -299,7 +299,7 @@ namespace cvb
 	{
 	  CvLabel label = (*it).second->label;
 
-	  double r, g, b;
+	  double r=0, g=0, b=0;
 
 	  _HSV2RGB_((double)((colorCount*77)%360), .5, 1., r, g, b);
 	  colorCount++;
@@ -318,7 +318,7 @@ namespace cvb
   // Returns radians
   double cvAngle(CvBlob *blob)
   {
-    CV_FUNCNAME("cvAngle");
+    //CV_FUNCNAME("cvAngle");
     __CV_BEGIN__;
 
     return .5*atan2(2.*blob->u11,(blob->u20-blob->u02));

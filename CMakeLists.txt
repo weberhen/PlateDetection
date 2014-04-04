@@ -34,16 +34,14 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
 # required packages
 FIND_PACKAGE(OpenCV REQUIRED)
 
-add_executable(ShadowDetector ${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
-				#${CMAKE_SOURCE_DIR}/src/SquareDetection.cpp
-#				#${CMAKE_SOURCE_DIR}/src/RobustMatcher.cpp
-				${CMAKE_SOURCE_DIR}/cvblob/cvBlob/cvlabel.cpp
-				${CMAKE_SOURCE_DIR}/cvblob/cvBlob/cvblob.cpp
-				${CMAKE_SOURCE_DIR}/src/ImageManipulation.cpp
-				${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
-				${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
-				${CMAKE_SOURCE_DIR}/src/PlateExtraction.cpp
-				${CMAKE_SOURCE_DIR}/src/Histogram.cpp
+add_executable(ShadowDetector 	${CMAKE_SOURCE_DIR}/src/MainShadowDetector.cpp
+								${CMAKE_SOURCE_DIR}/cvblob/cvBlob/cvlabel.cpp
+								${CMAKE_SOURCE_DIR}/cvblob/cvBlob/cvblob.cpp
+								${CMAKE_SOURCE_DIR}/src/ImageManipulation.cpp
+								${CMAKE_SOURCE_DIR}/src/ShadowDetector.cpp
+								${CMAKE_SOURCE_DIR}/src/MathFunctions.cpp
+								${CMAKE_SOURCE_DIR}/src/PlateExtraction.cpp
+								${CMAKE_SOURCE_DIR}/src/Histogram.cpp
                         )
 
 TARGET_LINK_LIBRARIES(ShadowDetector ${OpenCV_LIBS})

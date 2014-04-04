@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
 		Mat inter = imread("ROI.png",1);
         cvtColor(inter,inter,CV_BGR2GRAY);
-        IsolatePlate(inter,0, 0,0);
+        IsolatePlate(inter, 0,0);
        	//imwrite("BIG_preta.png",inter);
        	return 0;
 

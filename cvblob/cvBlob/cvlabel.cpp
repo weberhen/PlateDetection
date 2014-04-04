@@ -64,20 +64,20 @@ namespace cvb
       unsigned int imgIn_width = img->width;
       unsigned int imgIn_height = img->height;
       unsigned int imgIn_offset = 0;
-      unsigned int imgOut_width = imgOut->width;
-      unsigned int imgOut_height = imgOut->height;
+      //unsigned int imgOut_width = imgOut->width;
+      //unsigned int imgOut_height = imgOut->height;
       unsigned int imgOut_offset = 0;
       if(img->roi)
       {
-	imgIn_width = img->roi->width;
-	imgIn_height = img->roi->height;
-	imgIn_offset = img->roi->xOffset + (img->roi->yOffset * stepIn);
+		imgIn_width = img->roi->width;
+		imgIn_height = img->roi->height;
+		imgIn_offset = img->roi->xOffset + (img->roi->yOffset * stepIn);
       }
       if(imgOut->roi)
       {
-	imgOut_width = imgOut->roi->width;
-	imgOut_height = imgOut->roi->height;
-	imgOut_offset = imgOut->roi->xOffset + (imgOut->roi->yOffset * stepOut);
+			//imgOut_width = imgOut->roi->width;
+			//imgOut_height = imgOut->roi->height;
+			imgOut_offset = imgOut->roi->xOffset + (imgOut->roi->yOffset * stepOut);
       }
 
       unsigned char *imgDataIn = (unsigned char *)img->imageData + imgIn_offset;
@@ -143,8 +143,8 @@ namespace cvb
 
 		  for (unsigned char i=0; i<3; i++)
 		  {
-		    int nx = xx+movesE[direction][i][0];
-		    int ny = yy+movesE[direction][i][1];
+		    unsigned int nx = xx+movesE[direction][i][0];
+		    unsigned int ny = yy+movesE[direction][i][1];
 		    if ((nx<imgIn_width)&&(nx>=0)&&(ny<imgIn_height)&&(ny>=0))
 		    {
 		      if (imageIn(nx, ny))
@@ -189,7 +189,7 @@ namespace cvb
 		    break;
 		  }
 		  
-		  if (contourEnd = ((xx==x) && (yy==y) && (direction==1)))
+		  if ((contourEnd = ((xx==x) && (yy==y) && (direction==1))))
 		    break;
 		}
 	      }
@@ -358,6 +358,7 @@ namespace cvb
 
     }
     __CV_END__;
+    return -1;
   }
 
   void cvFilterLabels(IplImage *imgIn, IplImage *imgOut, const CvBlobs &blobs)
@@ -373,8 +374,8 @@ namespace cvb
       int imgIn_width = imgIn->width;
       int imgIn_height = imgIn->height;
       int imgIn_offset = 0;
-      int imgOut_width = imgOut->width;
-      int imgOut_height = imgOut->height;
+      //int imgOut_width = imgOut->width;
+      //int imgOut_height = imgOut->height;
       int imgOut_offset = 0;
       if(imgIn->roi)
       {
@@ -384,9 +385,9 @@ namespace cvb
       }
       if(imgOut->roi)
       {
-	imgOut_width = imgOut->roi->width;
-	imgOut_height = imgOut->roi->height;
-	imgOut_offset = imgOut->roi->xOffset + (imgOut->roi->yOffset * stepOut);
+		//imgOut_width = imgOut->roi->width;
+		//imgOut_height = imgOut->roi->height;
+		imgOut_offset = imgOut->roi->xOffset + (imgOut->roi->yOffset * stepOut);
       }
 
       char *imgDataOut=imgOut->imageData + imgOut_offset;
@@ -419,9 +420,9 @@ namespace cvb
       CV_ASSERT(img&&(img->depth==IPL_DEPTH_LABEL)&&(img->nChannels==1));
 
       int step = img->widthStep / (img->depth / 8);
-      int img_width = 0;
-      int img_height= 0;
-      int img_offset = 0;
+      unsigned int img_width = 0;
+      unsigned int img_height= 0;
+      unsigned int img_offset = 0;
       if(img->roi)
       {
 	img_width = img->roi->width;
@@ -439,6 +440,7 @@ namespace cvb
       return ((CvLabel *)(img->imageData + img_offset))[x + y*step];
     }
     __CV_END__;
+    return 0;
   }
 
 }
