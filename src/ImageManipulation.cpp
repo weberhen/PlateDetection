@@ -141,7 +141,7 @@ float calculateMetric()
 					{
 						gotHolePlate++;
 						meanMetricError=((meanMetricError*(float)(gotHolePlate-1)+metric)/gotHolePlate);
-						//cout<<"HolePlate"<<endl;
+						//cout<<"got "<<gotHolePlate<<endl;
 					}
 					/*if((intersection.area()<(realRect.area()*0.85))&&intersection.area()>0)
 					{

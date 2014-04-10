@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 
 
-void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y)
+void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y,int z, int hplate, int wplate)
 {
 //	namedWindow("plate",WINDOW_AUTOSIZE);
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
@@ -126,16 +126,21 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 
 		float tg11 = 0.1909; //tangent of 11o
 		float opp = width/2;
-
-		//ATENTION!!!
-
-		//I JUST COMMENTED THIS PART BECAUSE OF THE Z THAT IS NOT USED ANYMORE. THE CODE ITSELF IS GOOD!!
-		/*if((width > height*2.5) &&
+		float proportion=3;
+/*		if((width > height*2.5) &&
 		   	(width < height*maxPlateHeightRatio) &&
 		   	(width>45)&&(height>minPlateHeight)&&
 		   	(((opp/(float)z) < (tg11*2))&&
 			(((opp/(float)z) > (tg11*0.8)))) &&
 		   	(width<matLabelImg.cols/minPlateWidthRatio))
+		{*/
+		//cout<<(height>hplate*0.8)<<" "<<(height<hplate*2.5)<<" "<<(width >wplate*0.8)<<" "<<(width <wplate*2.5)<<endl;
+		//waitKey();
+		if(height>hplate&&
+		   //height<hplate*2.5&&
+		   width >wplate
+		   //width <wplate*2.5
+		  )
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
 		    Mat plate = sizeOriginal(myROI);
@@ -147,10 +152,21 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>minStdev){
 				timeBetweenPlates=clock();
-		    	imshow("final_plate",plate);
+		    	//imshow("final_plate",plate);
+
+		    	RNG rng(-1);
+				Scalar color=(255,155,255);
+				Point Pt1,Pt2;
+				Pt2.x=rmax;
+				Pt2.y=cmax;
+				Pt1.x=rmin;
+				Pt1.y=cmin;
+
+				rectangle( sizeOriginal, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+
 		    	//I have to sum with the previews value because it is the x,y relative to the rear of the car, and I will compare with the original image coordinates
 		    	algX = cmin + x;
-				algY = rmin + y;
+				algY = rmax;
 				algWidth = width;
 				algHeight = height;	
 				totalAlgPlates++;
@@ -161,7 +177,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 
 				//cout<<"y: "<<y<<" z: "<<z<<" width*height: "<<width*height<<endl;
 			}
-		}*/
+		}
 	    
 		/*
 		//correcting te values (because of the reduction to save time)

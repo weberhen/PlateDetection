@@ -268,81 +268,105 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input, int x, int y)
+void IsolatePlate(Mat input, int x, int y,int z,int hplate, int wplate)
 {
 	Mat original = input.clone();
 	
 	input.convertTo(input, CV_32F);
-	int sz[3] = {input.cols,input.rows,3};
+	int sz[3] = {input.rows,input.cols,3};
     	Mat xMat;
 
 	Sobel( input, xMat, CV_32F, 1, 0);
 
 	Mat xi,xi2;
 	cv::integral(xMat, xi, xi2, CV_64F);
-	
-	int winy_size[3] = {winy1,winy2,winy3};
-	int winx_size[3] = {winx1,winx2,winx3};
-
-	int scols = input.cols;
-	int srows = input.rows;
-	
-    Mat st(3,sz, CV_64FC3, Scalar::all(0));
-    for(int ind=0;ind<3;ind++)
-    {
-    	int winx = winx_size[ind];
-	    int winy = winy_size[ind];
-	    
-	    double Npix = (2*winx+1)*(2*winy+1);
-    	for(int i=1+winx;i<srows-winy-1;i++)
-    	{
-    		for(int j=winy;j<scols-winx-1;j++)
-    		{
-    			double ex = 	xi.at<double>(i + winx + 1,j + winy + 1)
-    						+ 	xi.at<double>(i - winx, j - winy)
-    						-  	xi.at<double>(i - winx,j + winy + 1)
-    						-	xi.at<double>(i + winx + 1,j - winy);
-            	
-    			double ex2 = 	xi2.at<double>(i + winx + 1,j + winy + 1)
-    						+ 	xi2.at<double>(i - winx, j - winy)
-    						-  	xi2.at<double>(i - winx,j + winy + 1)
-    						-	xi2.at<double>(i + winx + 1,j - winy);
-    			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
-    		}
-    	}
-    }
-    Mat ss(srows, scols, CV_32F);
-	for(int i=0;i<srows;i++)
+	float mul1=0.7;
+	float mul2=0.35;
+	//for(int change=0;change<100;change++)
 	{
-		for(int j=0;j<scols;j++)
-		{
-		   	ss.at<float>(i,j) = (st.at<Vec3f>(i,j)[0] + st.at<Vec3f>(i,j)[1] + st.at<Vec3f>(i,j)[2])/3;
-		}
-	}
-	
-	Mat so = ss.clone();
+		
+		int winx_factor=wplate*mul1;
+		int winy_factor=hplate*mul2;
+	//	mul1=mul1+0.02;
+	//	mul2=mul2+0.01;
 
-	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+		if(winy_factor<=0)
+			winy_factor++;
+		if(winx_factor<=0)
+			winx_factor++;
+		
+		//cout<<"winx_factor: "<<winx_factor<<" mul1: "<<mul1<<" winy_factor: "<<winy_factor<<" mul2: "<<mul2<<endl;
 
-	//CalcHistogram( so );
-	//cout<<"cols: "<<so.cols<<" rows: "<<so.rows<<" so.rows*0.5: "<<so.rows*0.5<<" so.cols*0.5: "<<so.cols*0.5<<" so.rows*0.9: "<<so.rows*0.9<<" so.cols*0.9: "<<so.cols*0.9<<endl;
-	float T = 0.5*(so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
-	
-	for(int i=0;i<srows;i++){
-		for(int j=0;j<scols;j++)
+		//int winy_size[3] = {winy1,winy2,winy3};
+		//int winx_size[3] = {winx1,winx2,winx3};
+		int winy_size[3] = {winy_factor-1,winy_factor,winy_factor+1};
+		int winx_size[3] = {winy_factor-1,winy_factor,winy_factor+1};
+
+		//cout<<x<<" "<<y<<endl;
+
+
+		int scols = input.cols;
+		int srows = input.rows;
+		
+	    Mat st(3,sz, CV_64FC3, Scalar::all(0));
+	    for(int ind=0;ind<3;ind++)
+	    {
+	    	int winx = winx_size[ind];
+		    int winy = winy_size[ind];
+		    
+		    double Npix = (2*winx+1)*(2*winy+1);
+	    	for(int i=1+winx;i<srows-winy-1;i++)
+	    	{
+	    		for(int j=winy;j<scols-winx-1;j++)
+	    		{
+	    			double ex = 	xi.at<double>(i + winx + 1,j + winy + 1)
+	    						+ 	xi.at<double>(i - winx, j - winy)
+	    						-  	xi.at<double>(i - winx,j + winy + 1)
+	    						-	xi.at<double>(i + winx + 1,j - winy);
+	            	
+	    			double ex2 = 	xi2.at<double>(i + winx + 1,j + winy + 1)
+	    						+ 	xi2.at<double>(i - winx, j - winy)
+	    						-  	xi2.at<double>(i - winx,j + winy + 1)
+	    						-	xi2.at<double>(i + winx + 1,j - winy);
+	    			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
+	    		}
+	    	}
+	    }
+	    Mat ss(srows, scols, CV_32F);
+		for(int i=0;i<srows;i++)
 		{
-			if(ss.at<float>(i,j)<T)
-				input.at<float>(i,j)=0.;
-			else
-				input.at<float>(i,j)=255.;
+			for(int j=0;j<scols;j++)
+			{
+			   	ss.at<float>(i,j) = (st.at<Vec3f>(i,j)[0] + st.at<Vec3f>(i,j)[1] + st.at<Vec3f>(i,j)[2])/3;
+			}
 		}
+		
+		Mat so = ss.clone();
+
+		cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+
+		//CalcHistogram( so );
+		//cout<<"cols: "<<so.cols<<" rows: "<<so.rows<<" so.rows*0.5: "<<so.rows*0.5<<" so.cols*0.5: "<<so.cols*0.5<<" so.rows*0.9: "<<so.rows*0.9<<" so.cols*0.9: "<<so.cols*0.9<<endl;
+		float T = 0.5*(so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
+		
+		for(int i=0;i<srows;i++){
+			for(int j=0;j<scols;j++)
+			{
+				if(ss.at<float>(i,j)<T)
+					input.at<float>(i,j)=0.;
+				else
+					input.at<float>(i,j)=255.;
+			}
+		}
+		//namedWindow("step",	WINDOW_AUTOSIZE);
+		imshow("BW",input);
+		//waitKey();
+		
 	}
-	//namedWindow("step",	WINDOW_AUTOSIZE);
-	
 	//waitKey();
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
 	
-	ConnectedComponents(input, original, original, x, y);
+	ConnectedComponents(input, original, original, x, y,z,hplate,wplate);
 	    
 }
 
@@ -439,7 +463,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		float uu = fu*XCl.at<float>(0)/XCl.at<float>(2);
 		float ubr = u0-uu;
 		float vv = fu*XCl.at<float>(1)/XCl.at<float>(2);
-		float vbr = vv+v0;
+		float vtl = vv+v0;
 
 		//extracted from MATLAB
 		Mat XCl2 = (Mat_<float>( 3, 1)<<
@@ -451,7 +475,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
  		uu = fu*XCl2.at<float>(0)/XCl2.at<float>(2);
 		float utl = u0-uu;
 		vv = fu*XCl2.at<float>(1)/XCl2.at<float>(2);
-		float vtl = vv+v0;
+		float vbr = vv+v0;
 
 
 		//ROI height
@@ -494,8 +518,8 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		
 		RNG rng(-1);
 		Scalar color=(255,155,255);
-		rectangle( hole_img, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
-		line(hole_img,shadow1,shadow2,color,rng.uniform(1,1),CV_AA);
+		//rectangle( hole_img, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+		//line(hole_img,shadow1,shadow2,color,rng.uniform(1,1),CV_AA);
 
 		int x = leftx;
 		
@@ -504,15 +528,23 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		int y = righty-height;
 		if(y<0)
 			y=0;
-		cv::Rect myROI(x,y,width-1,height);
-		cout<<x<<" "<<y<<" "<<width<<" "<<height<<" "<<hbase_min<<" "<<hbase_max<<endl;
+		cv::Rect myROI(x,y,width,height);
+
+		int hplate_im=ubr-utl;
+		int wplate_im=vbr-vtl;
+
+		//cout<<x<<" "<<y<<" "<<width<<" "<<height<<" "<<hbase_min<<" "<<hbase_max<<endl;
 		//cout<<hole_img.rows<<" "<<hole_img.cols<<endl;
 		//waitKey();
 		Mat matImg = hole_img(myROI);
 
 		//imshow("step",matImg);
 
-	    IsolatePlate(matImg, leftx, righty);
+		//z is the distance between the camera and the car 
+        //being evaluated through its position in the image
+        int z = righty; //y + height;
+
+	    IsolatePlate(matImg, leftx, righty,z, hplate_im, wplate_im);
 	}
 	
 	//////////////////////////////////////////////////////////////////////

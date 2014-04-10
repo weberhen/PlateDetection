@@ -8,7 +8,7 @@ using namespace cv;
 
 #include "ShadowDetector.hpp"
 
-void ConnectedComponents(const Mat mat, Mat original, Mat sizeOriginal, int x, int y);
+void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y,int z, int hplate, int wplate);
 void printIplImage(const IplImage* src);
 void RowColConnectedComponents(Vector<bool>ccVector, int *min, int *max);
 #endif

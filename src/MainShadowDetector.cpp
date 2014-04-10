@@ -76,9 +76,9 @@ int main(int argc, char** argv)
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
-		 VideoCapture stream("bento_ipiranga_1410.h264");
-		 //VideoCapture stream("cristiano_fischer_1010.h264");
-		 //VideoCapture stream("carlos_gomes_1410.h264");
+		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/bento_ipiranga_1410.h264");
+		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/cristiano_fischer_1010.h264");
+		 VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/carlos_gomes_1410.h264");
 		 
     	if (!stream.isOpened())
     	{
@@ -94,9 +94,8 @@ int main(int argc, char** argv)
 	    	{
 	 		//t = clock();
 	    	
-
-
-	    /*	if(frame==3069)
+			//if(totalRealPlates==2975)
+	    	if(frame==4481)
 	    	{	
 	    		falsePositives= totalAlgPlates- MinimunIntersection;
 	    		falseNegatives= totalRealPlates - MinimunIntersection;
@@ -104,11 +103,8 @@ int main(int argc, char** argv)
 	    		cout<<"falsePositives: "<<falsePositives<<" falseNegatives: "<<falseNegatives<<endl;
 	    		return 0;
 	    	}
-		*/
-
-
-
-	    	//if((frame<2550)&&(frame>frameChangeROI))
+		
+	    	//if((frame<2550)||(frame>frameChangeROI))
 	    	//	myROI = cv::Rect(0,0,src.cols, 220);
 	    	//else
 	    		myROI = cv::Rect(0,0,src.cols, 220);
@@ -150,7 +146,7 @@ int main(int argc, char** argv)
 				imshow("sss",src_gray(myROI));
 				
 				//uncomment to take metrics
-				//float metric = calculateMetric();
+				float metric = calculateMetric();
 				
 
 				/*if(metric>10000)
