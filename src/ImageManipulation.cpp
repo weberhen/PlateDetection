@@ -162,26 +162,31 @@ float calculateMetric()
 
 void InitializeParameters(char** argv)
 {
-	frameChangeROI = stoi(argv[1]); //MainShadowDetector.. to set specific part of video where the ROI will change it height (4000)
-	percentil = atof(argv[2]); 
-	median = atof(argv[3]);
-	minSegmentSizeRatio = atof(argv[4]); //||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
-	maxSegmentSizeRatio = atof(argv[5]); //||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
-	minStdev = stoi(argv[6]);
-	//int width = cmax - cmin;
-	//int height = rmax - rmin;
-	minPlateWidthRatio = stoi(argv[7]); // 1.2
-	minPlateHeight = stoi(argv[8]); //15
-	maxPlateWidth = stoi(argv[9]);
-	maxPlateHeightRatio = stoi(argv[10]); //4
-	//int winy_size[3] = {1,2,3};
-	//int winx_size[3] = {1,1,2};
-	winy1 = stoi(argv[11]); 
-	winy2 = stoi(argv[12]);
-	winy3 = stoi(argv[13]);
-	winx1 = stoi(argv[14]);
-	winx2 = stoi(argv[15]);
-	winx3 = stoi(argv[16]);
-	minPlateArea = stoi(argv[17]);
-	maxPlateArea = stoi(argv[18]);
+	
+	totalRealPlates=0;
+	totalAlgPlates=0;
+	gotHolePlate=0;
+	meanMetricError=0;
+	falsePositives=0;
+	falseNegatives=0;
+	MinimunIntersection=0;
+
+	frameChangeROI = 		stoi(argv[2]); //MainShadowDetector.. to set specific part of video where the ROI will change it height (4000)
+	percentil = 			atof(argv[3]); 
+	median = 				atof(argv[4]);
+	minSegmentSizeRatio = 	atof(argv[5]); //||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+	maxSegmentSizeRatio = 	atof(argv[6]); //||((segmentSize>i*1.35) || (segmentSize<i*0.65)))
+	minStdev = 				stoi(argv[7]);
+	minPlateWidthRatio = 	stoi(argv[8]); // 1.2
+	minPlateHeight =		stoi(argv[9]); //15
+	maxPlateWidth = 		stoi(argv[10]);
+	maxPlateHeightRatio = 	stoi(argv[11]); //4
+	winy1 = 				stoi(argv[12]); 
+	winy2 = 				stoi(argv[13]);
+	winy3 = 				stoi(argv[14]);
+	winx1 = 				stoi(argv[15]);
+	winx2 = 				stoi(argv[16]);
+	winx3 = 				stoi(argv[17]);
+	minPlateArea = 			stoi(argv[18]);
+	maxPlateArea = 			stoi(argv[19]);
 }

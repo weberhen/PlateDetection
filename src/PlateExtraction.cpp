@@ -152,7 +152,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>minStdev){
 				timeBetweenPlates=clock();
-		    	//imshow("final_plate",plate);
+		    	imshow("final_plate",plate);
 
 		    	RNG rng(-1);
 				Scalar color=(255,155,255);

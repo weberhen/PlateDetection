@@ -1,85 +1,21 @@
 #include "MainShadowDetector.hpp"
 #include<time.h>
 
-clock_t timeBetweenPlates = 0;
 
-int mouseClicks=0;
-int frame=0;
-Point currentClick, previewsClick;
-Vector<Point> platesInFrame;
-
-//////////////////////////////////////////////////////////////
-//parameters to be seted by the user (to reach the best performance)
- int frameChangeROI;
- float percentil;
- float median;
- float minSegmentSizeRatio;
- float maxSegmentSizeRatio;
- int minStdev;
-//int width = cmax - cmin;
-//int height = rmax - rmin;
- int minPlateWidthRatio;
- int minPlateHeight;
- int maxPlateWidth;
- int maxPlateHeightRatio;
-//int winy_size[3] = {1,2,3};
-//int winx_size[3] = {1,1,2};
- int winy1;
- int winy2;
- int winy3;
- int winx1;
- int winx2;
- int winx3;
- int minPlateArea;
- int maxPlateArea;
-
-//////////////////////////////////////////////////////////////
-
-int algX;
-int algY;
-int algWidth;
-int algHeight;
-
-int totalRealPlates;
-int totalAlgPlates;
-int falsePositives;
-int falseNegatives;
-int gotHolePlate;
-float meanMetricError;
-int MinimunIntersection;
-
-int realX,realY,realWidth,realHeight;
 
 ifstream myfile ("carlos_gomes_1410.txt");
 
 int main(int argc, char** argv)
 {
 	InitializeParameters(argv);
-	Mat src_gray, src;
-	bool debugMode = false;
-	bool manualPlateCapture=false;
-
-	//
 	
-	totalRealPlates=0;
-	totalAlgPlates=0;
-	gotHolePlate=0;
-	meanMetricError=0;
-	falsePositives=0;
-	falseNegatives=0;
-	MinimunIntersection=0;
-
-
-	structAsphaltInfo _structAsphaltInfo;
 	if(manualPlateCapture)
-		namedWindow("sss",WINDOW_AUTOSIZE);
-	//clock_t t, old_t = 0;
+		namedWindow("manualPlateCapture",WINDOW_AUTOSIZE);
+	
 	if(!debugMode)
 	{
-		 VideoCapture stream("/home/hweber/Videos/filmagens_rua/bento_ipiranga_1410.h264");
-		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/cristiano_fischer_1010.h264");
-		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/carlos_gomes_1410.h264");
-		 
+		VideoCapture stream(argv[1]);
+		
     	if (!stream.isOpened())
     	{
 	       	std::cout << "Stream cannot be opened" << std::endl;
@@ -87,40 +23,29 @@ int main(int argc, char** argv)
 		}
 
 		stream >> src;
-		 cv::Rect myROI;
-		bool alreadyCalled = false;
-		setMouseCallback("sss",on_mouse, &currentClick );
-		while(1)
-	    	{
-	 		//t = clock();
-	    	
-			//if(totalRealPlates==2975)
-	    	if(frame==4481)
-	    	{	
-	    		falsePositives= totalAlgPlates- MinimunIntersection;
-	    		falseNegatives= totalRealPlates - MinimunIntersection;
-	    		cout<<"totalRealPlates: "<<totalRealPlates<<" totalAlgPlates: "<<totalAlgPlates<<" gotHolePlate: "<<gotHolePlate<<" meanMetricError: "<<meanMetricError<<endl;
-	    		cout<<"falsePositives: "<<falsePositives<<" falseNegatives: "<<falseNegatives<<endl;
-	    		return 0;
-	    	}
 		
-	    	//if((frame<2550)||(frame>frameChangeROI))
-	    	//	myROI = cv::Rect(0,0,src.cols, 220);
-	    	//else
-	    		myROI = cv::Rect(0,0,src.cols, 220);
+		setMouseCallback("manualPlateCapture",on_mouse, &currentClick );
+		while(1)
+	    {
+	 		if(measureTime)
+	 			t = clock();
+	    	
+			//just part of the video can be used because of the reflection in the windshield
+			myROI = cv::Rect(0,0,src.cols, 220);
 	       	stream >> src;
-	       	frame++;
-	       	//cout<<frame<<endl;
 	       	if(src.empty()) 
 	       	{
 		       	std::cout << "Error reading video frame" << endl;
 		    }
+
+		    frame++;
+		    
 		    //setting manually the plates for validation purposes
 		    //the "frames" condition is here to allow that the manual plate detection can start at any frame
 			if(manualPlateCapture && frame>0)
 			{
-				cvtColor(src,src_gray,CV_BGR2GRAY);
-				imshow("sss",src_gray(myROI));
+				cvtColor(src,srcGray,CV_BGR2GRAY);
+				imshow("manualPlateCapture",srcGray(myROI));
 				waitKey(0);
 				insertPlateCoordToFile(frame, platesInFrame);
 				platesInFrame.clear();
@@ -128,58 +53,38 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				//convert src to gray scale (src_gray)
-				cvtColor(src,src_gray,CV_BGR2GRAY);
-				if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!alreadyCalled))
-				//if(!alreadyCalled)
+				//convert src to gray scale (srcGray)
+				cvtColor(src,srcGray,CV_BGR2GRAY);
+				
+				//calculates fds gray median only if 5 seconds have passed without any detected plate
+				if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!fdsMedianFirstUse))
 				{
-					//cout<<"too long"<<endl;
-					_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
+					_structAsphaltInfo = FreeDrivingSpaceInfo(srcGray);
 					if(_structAsphaltInfo.median<100)
 						_structAsphaltInfo.median=130;
 					timeBetweenPlates=clock();
-					alreadyCalled=true;
-					//cout<<"median is now "<<_structAsphaltInfo.median<<endl;
+					fdsMedianFirstUse=true;
 				}
-				SearchForShadow(src_gray(myROI),_structAsphaltInfo.median);
+				SearchForShadow(srcGray(myROI),_structAsphaltInfo.median);
 				
-				imshow("sss",src_gray(myROI));
+				if(!onRPI)
+					imshow("Recorded Video",srcGray(myROI));
 				
-				//uncomment to take metrics
-				float metric = calculateMetric();
+				if(takeMetrics)
+					float metric = calculateMetric();
 				
-
-				/*if(metric>10000)
-				{
-					metric-=10000;
-					cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
-					cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
-					cv::Rect r1(realX,realY,realWidth,realHeight);
-					cv::Rect r2(algX,algY,algWidth,algHeight);
-					imwrite("alg80p.png",src_gray(r2));
-					imwrite("real80p.png",src_gray(r1));
-					
-				}*/
-				/*if((metric > 0.5) && (metric < 0.6))// && ((realHeight*realWidth)>1700))
-				{
-					cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
-					cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
-					cv::Rect r1(realX,realY,realWidth,realHeight);
-					cv::Rect r2(algX,algY,algWidth,algHeight);
-					imwrite("algCrop.png",src_gray(r2));
-					imwrite("realCrop.png",src_gray(r1));
-					waitKey();
-				}*/
-				//cout<<algX<<" "<<algY<<" "<<algWidth<<" "<<algHeight<<endl;
 				algX=0;
 				algY=0;
 				algWidth=0;
 				algHeight=0;
 
-				waitKey(2);
-				//to measure the fps, just uncomment the following lines
-				//t = clock() - t;
-				//printf("fps: %f.\n",1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
+				if(!onRPI)
+					waitKey(2);
+				if(measureTime)
+				{
+					t = clock() - t;
+					printf("fps: %f.\n",1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
+				}
 			}
 		}
 		
@@ -189,32 +94,8 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-
-		Mat inter = imread("ROI.png",1);
-        cvtColor(inter,inter,CV_BGR2GRAY);
-        //IsolatePlate(inter, 0,0);
-       	//imwrite("BIG_preta.png",inter);
-       	return 0;
-
-		namedWindow("Small3",WINDOW_AUTOSIZE);
-		src = imread("capturaModificada.png",1);
-		cvtColor(src,src_gray,CV_BGR2GRAY);
-		_structAsphaltInfo = FreeDrivingSpaceInfo(src_gray);
-		Mat transitionToShadow = TransitionToShadow(src_gray, _structAsphaltInfo.median);
-		imwrite("TransitionToShadow.png",transitionToShadow);
-		Size size(src.cols,src.rows);
-		Mat exludeFalseShadowPixels = ExludeFalseShadowPixels(transitionToShadow, size);
-		imwrite("ExludeFalseShadowPixels.png",exludeFalseShadowPixels);
-		vector<Vec4i> lines = mergeLines(exludeFalseShadowPixels);
-		lines = excludeDuplicateShadows(lines);
-		Mat original_gray;
-		//PS: to save picture from ROI, change drawSquares(matImg, squares); to drawSquares(input, squares); at line 357 of ShadowDetector.cpp
-		CreateROIOfShadow(lines, src_gray,1);
-		imwrite("createROIOfShadow.png",src_gray);
-
+		//debug code can be put here
 	}
-
-
 	return 0;
 
 
