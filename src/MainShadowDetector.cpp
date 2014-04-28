@@ -76,9 +76,9 @@ int main(int argc, char** argv)
 	//clock_t t, old_t = 0;
 	if(!debugMode)
 	{
-		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/bento_ipiranga_1410.h264");
+		 VideoCapture stream("/home/hweber/Videos/filmagens_rua/bento_ipiranga_1410.h264");
 		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/cristiano_fischer_1010.h264");
-		 VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/carlos_gomes_1410.h264");
+		 //VideoCapture stream("/media/1E784E3B784E1247/filmagens_rua/carlos_gomes_1410.h264");
 		 
     	if (!stream.isOpened())
     	{
@@ -192,7 +192,7 @@ int main(int argc, char** argv)
 
 		Mat inter = imread("ROI.png",1);
         cvtColor(inter,inter,CV_BGR2GRAY);
-        IsolatePlate(inter, 0,0);
+        //IsolatePlate(inter, 0,0);
        	//imwrite("BIG_preta.png",inter);
        	return 0;
 
