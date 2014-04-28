@@ -84,7 +84,6 @@ int main(int argc, char** argv)
 				if(measureTime)
 				{
 					t = clock() - t;
-					cout<<"pure clock: "<<clock()<<endl;
 					printf("fps: %.2f\n",double(1)/((((double)t)/CLOCKS_PER_SEC)));
 				}
 			}

@@ -361,6 +361,7 @@ void IsolatePlate(Mat input, int x, int y,int z,int hplate, int wplate)
 			}
 		}
 		//namedWindow("step",	WINDOW_AUTOSIZE);
+		if(!onRPI)
 		imshow("BW",input);
 		//waitKey();
 		

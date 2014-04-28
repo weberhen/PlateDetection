@@ -6,7 +6,7 @@
 //FLAGS
 bool debugMode= 		false;
 bool manualPlateCapture=false;
-bool measureTime= 		true;
+bool measureTime= 		false;
 bool fdsMedianFirstUse=	false;
 bool takeMetrics=		false;
 bool onRPI=				false;
@@ -29,14 +29,10 @@ cv::Rect myROI;
  float minSegmentSizeRatio;
  float maxSegmentSizeRatio;
  int minStdev;
-//int width = cmax - cmin;
-//int height = rmax - rmin;
  int minPlateWidthRatio;
  int minPlateHeight;
  int maxPlateWidth;
  int maxPlateHeightRatio;
-//int winy_size[3] = {1,2,3};
-//int winx_size[3] = {1,1,2};
  int winy1;
  int winy2;
  int winy3;

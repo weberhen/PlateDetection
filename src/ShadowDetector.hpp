@@ -3,7 +3,6 @@
 
 
 #include "opencv2/opencv.hpp"
-#include "SquareDetection.hpp"
 #include "MathFunctions.hpp"
 #include "ImageManipulation.hpp"
 #include "PlateExtraction.hpp"
@@ -27,6 +26,7 @@ typedef struct asphaltInfo{
 } structAsphaltInfo;
 
 extern clock_t timeBetweenPlates;
+extern bool onRPI;
 
 extern int mouseClicks;
 extern int frame;
