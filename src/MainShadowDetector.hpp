@@ -3,24 +3,22 @@
 
 #include "ShadowDetector.hpp"
 
-clock_t timeBetweenPlates = 0;
+//FLAGS
+bool debugMode= 		false;
+bool manualPlateCapture=false;
+bool measureTime= 		true;
+bool fdsMedianFirstUse=	false;
+bool takeMetrics=		false;
+bool onRPI=				false;
 
+clock_t timeBetweenPlates = 0;
 int mouseClicks=0;
 int frame=0;
 Point currentClick, previewsClick;
 Vector<Point> platesInFrame;
 Mat srcGray, src;
-
-//FLAGS
-bool debugMode= 		false;
-bool manualPlateCapture=false;
-bool measureTime= 		false;
-bool fdsMedianFirstUse=	false;
-bool takeMetrics=		false;
-bool onRPI=				false;
-
 structAsphaltInfo _structAsphaltInfo;
-clock_t t, old_t = 0;
+clock_t t;
 cv::Rect myROI;
 
 //////////////////////////////////////////////////////////////

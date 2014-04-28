@@ -1,5 +1,6 @@
 #include "MainShadowDetector.hpp"
-#include<time.h>
+#include <time.h>
+#include <unistd.h>
 
 
 
@@ -24,7 +25,9 @@ int main(int argc, char** argv)
 
 		stream >> src;
 		
-		setMouseCallback("manualPlateCapture",on_mouse, &currentClick );
+		if(manualPlateCapture)
+			setMouseCallback("manualPlateCapture",on_mouse, &currentClick );
+
 		while(1)
 	    {
 	 		if(measureTime)
@@ -49,7 +52,6 @@ int main(int argc, char** argv)
 				waitKey(0);
 				insertPlateCoordToFile(frame, platesInFrame);
 				platesInFrame.clear();
-
 			}
 			else
 			{
@@ -60,9 +62,8 @@ int main(int argc, char** argv)
 				if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!fdsMedianFirstUse))
 				{
 					_structAsphaltInfo = FreeDrivingSpaceInfo(srcGray);
-					if(_structAsphaltInfo.median<100)
-						_structAsphaltInfo.median=130;
-					timeBetweenPlates=clock();
+					if(measureTime)
+						timeBetweenPlates=clock();
 					fdsMedianFirstUse=true;
 				}
 				SearchForShadow(srcGray(myROI),_structAsphaltInfo.median);
@@ -83,7 +84,8 @@ int main(int argc, char** argv)
 				if(measureTime)
 				{
 					t = clock() - t;
-					printf("fps: %f.\n",1/((((float)t)/CLOCKS_PER_SEC)-(((float)old_t)/CLOCKS_PER_SEC)));
+					cout<<"pure clock: "<<clock()<<endl;
+					printf("fps: %.2f\n",double(1)/((((double)t)/CLOCKS_PER_SEC)));
 				}
 			}
 		}

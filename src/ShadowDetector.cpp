@@ -129,6 +129,8 @@ structAsphaltInfo FreeDrivingSpaceInfo(Mat src_gray)
         FreeDrivingSpace(dst, src_gray, &_structAsphaltInfo);
         lowThreshold+=20;
     }
+	if(_structAsphaltInfo.median<100)
+		_structAsphaltInfo.median=130;
 	return _structAsphaltInfo;
 }
 
