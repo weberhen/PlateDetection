@@ -270,7 +270,7 @@ Mat ExludeFalseShadowPixels(Mat input, Size size)
 	return shadows;
 }
 
-void IsolatePlate(Mat input, int x, int y,int z,int hplate, int wplate)
+void IsolatePlate(Mat input, int x, int y,int hplate, int wplate)
 {
 	Mat original = input.clone();
 	
@@ -362,14 +362,16 @@ void IsolatePlate(Mat input, int x, int y,int z,int hplate, int wplate)
 		}
 		//namedWindow("step",	WINDOW_AUTOSIZE);
 		if(!onRPI)
-		imshow("BW",input);
-		//waitKey();
+		{
+			imshow("BW",input);
+			//waitKey();
+		}
 		
 	}
 	//waitKey();
 	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
 	
-	ConnectedComponents(input, original, original, x, y,z,hplate,wplate);
+	ConnectedComponents(input, original, original, x, y,hplate,wplate);
 	    
 }
 
@@ -521,7 +523,10 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		
 		RNG rng(-1);
 		Scalar color=(255,155,255);
-		//rectangle( hole_img, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+		Mat dim_plate = hole_img.clone();
+		//rectangle( dim_plate, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+		//imshow("dim_plate",dim_plate);
+		//waitKey();
 		//line(hole_img,shadow1,shadow2,color,rng.uniform(1,1),CV_AA);
 
 		int x = leftx;
@@ -547,7 +552,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
         //being evaluated through its position in the image
         int z = righty; //y + height;
 
-	    IsolatePlate(matImg, leftx, righty,z, hplate_im, wplate_im);
+	    IsolatePlate(matImg, leftx, righty, hplate_im, wplate_im);
 	}
 	
 	//////////////////////////////////////////////////////////////////////

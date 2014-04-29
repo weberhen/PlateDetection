@@ -5,9 +5,9 @@ using namespace cv;
 using namespace std;
 
 
-void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y,int z, int hplate, int wplate)
+void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y, int hplate, int wplate)
 {
-//	namedWindow("plate",WINDOW_AUTOSIZE);
+
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
 	IplImage *im32 = new IplImage(mat);
 	IplImage *img32original = new IplImage(original);
@@ -30,8 +30,6 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	Mat matLabelImg(labelImg);
 	cvFilterByArea(blobs,minPlateArea,maxPlateArea);
 	//cout<<"how many blobs? "<<blobs.size()<<endl;
-	//namedWindow("labelImg",WINDOW_AUTOSIZE);
-	//cvShowImage("im8",labelImg);	
 	
 	for (CvBlobs::const_iterator it=blobs.begin(); it!=blobs.end(); ++it)
 	{
@@ -39,12 +37,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	    unsigned int maxx = it->second->maxx; ///< X max.
 	    unsigned int miny = it->second->miny; ///< Y min.
 	    unsigned int maxy = it->second->maxy; ///< y max.
-		
-		//minx = (sizeOriginal.cols * minx) / 80;
-	    //maxx = (sizeOriginal.cols * maxx) / 80;
-	    //miny = (sizeOriginal.rows * miny) / original.rows;
-	    //maxy = (sizeOriginal.rows * maxy) / original.rows;
-		
+				
 		//
 		//finds comulative response along rows
 		//
@@ -55,16 +48,15 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	    	{
 	    		if(matLabelImg.at<unsigned int>(j,i)==it->second->label)
 	    			cumRows[j]++;
-	    		//printf("cum: %d\n",matLabelImg.at<unsigned int>(j,i))	;
 	    	}
 	    }
 
-	    int hthresh = 15;
+	    int hthresh = wplate;
 	    int rmin=-1;
 	    int rmax=-1;
 	    Vector<bool> ccRow; //used to find the biggest connected component in a Row
 	   
-
+	    //binarizing ccRow based on hthresh
 	    for(unsigned int i=0;i<cumRows.size();i++)
 	    {
 	    	if(cumRows[i]>hthresh)
@@ -78,10 +70,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	    		ccRow.push_back(false);
 	    }
 	    RowColConnectedComponents(ccRow, &rmin, &rmax);
-	    //cout<<"rmin: "<<rmin<<" rmax: "<<rmax<<endl;
-	    //waitKey();
-	    //cout<<"rmin: "<<rmin<<" rmax: "<<rmax<<endl;
-	    	
+
 	    //
 		//finds comulative response along columns
 		//
@@ -96,11 +85,12 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	    	
 	    }
 
-	    int vthresh = hthresh/3;
+	    int vthresh = hplate;
 	    int cmin=-1;
 	    int cmax=-1;
 	    Vector<bool> ccCol; //used to find the biggest connected component in a Collumn
 
+	    //binarizing ccCol based on vthresh
 	    for(unsigned int i=0;i<cumCols.size();i++)
 	    {
 	    	if(cumCols[i]>vthresh)
@@ -114,32 +104,14 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	    		ccCol.push_back(false);
 	    }
 	    RowColConnectedComponents(ccCol, &cmin, &cmax);
-	    //cout<<"cmin: "<<cmin<<" cmax: "<<cmax<<endl;
-	    //waitKey();
-	    //cout<<"cmin: "<<cmin<<" cmax: "<<cmax<<endl;
-	    
 
 	    int width = cmax - cmin;
 		int height = rmax - rmin;
 		
-		
-
-		float tg11 = 0.1909; //tangent of 11o
-		float opp = width/2;
-		float proportion=3;
-/*		if((width > height*2.5) &&
-		   	(width < height*maxPlateHeightRatio) &&
-		   	(width>45)&&(height>minPlateHeight)&&
-		   	(((opp/(float)z) < (tg11*2))&&
-			(((opp/(float)z) > (tg11*0.8)))) &&
-		   	(width<matLabelImg.cols/minPlateWidthRatio))
-		{*/
-		//cout<<(height>hplate*0.8)<<" "<<(height<hplate*2.5)<<" "<<(width >wplate*0.8)<<" "<<(width <wplate*2.5)<<endl;
-		//waitKey();
 		if(height>hplate&&
-		   //height<hplate*2.5&&
-		   width >wplate
-		   //width <wplate*2.5
+		   height<hplate*2.5&&
+		   width >wplate&&
+		   width <wplate*2.5
 		  )
 		{
 			cv::Rect myROI(cmin, rmin, width , height);
@@ -152,7 +124,8 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>minStdev){
 				timeBetweenPlates=clock();
-		    	imshow("final_plate",plate);
+		    	if(!onRPI)
+		    		imshow("final_plate",plate);
 
 		    	RNG rng(-1);
 				Scalar color=(255,155,255);
@@ -162,7 +135,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 				Pt1.x=rmin;
 				Pt1.y=cmin;
 
-				rectangle( sizeOriginal, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+				//rectangle( sizeOriginal, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
 
 		    	//I have to sum with the previews value because it is the x,y relative to the rear of the car, and I will compare with the original image coordinates
 		    	algX = cmin + x;
@@ -170,48 +143,9 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 				algWidth = width;
 				algHeight = height;	
 				totalAlgPlates++;
-
-				//printf("xim: %d yim: %d\n", algX,algY);
-				//waitKey();
-
-
-				//cout<<"y: "<<y<<" z: "<<z<<" width*height: "<<width*height<<endl;
 			}
 		}
 	    
-		/*
-		//correcting te values (because of the reduction to save time)
-	    minx = (sizeOriginal.cols * minx) / 80;
-	    maxx = (sizeOriginal.cols * maxx) / 80;
-	    miny = (sizeOriginal.rows * miny) / original.rows;
-	    maxy = (sizeOriginal.rows * maxy) / original.rows;
-
-		int width = maxx - minx;
-		int height = maxy - miny;
-		cv::Rect myROI(minx, miny, width , height);
-		float tg11 = 0.1909; //tangent of 11o
-		float opp = width/2;
-
-		Mat plate = sizeOriginal(myROI);
-		Scalar stddev;
-		Scalar mean;
-		//getting the stdev of the patch
-		cv::meanStdDev ( plate, mean, stddev );
-		//uchar       mean_pxl = mean.val[0];
-		double       stddev_pxl = stddev.val[0];
-
-		namedWindow("final_plate",WINDOW_AUTOSIZE);
-		if((width > height*2.5) &&
-		   (width < height*4) &&
-			(((opp/(float)z) < (tg11*3))&&
-			(((opp/(float)z) > (tg11*0.1)))) &&
-			stddev_pxl>20
-		)
-		{
-			//imwrite("final.png",plate);
-			imshow("final_plate",plate);
-		}
-		*/
 	}
 
 	
