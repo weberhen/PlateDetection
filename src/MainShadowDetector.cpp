@@ -57,13 +57,13 @@ int main(int argc, char** argv)
 			{
 				//convert src to gray scale (srcGray)
 				cvtColor(src,srcGray,CV_BGR2GRAY);
-				
+				cout<<"timeBetweenPlates: "<<timeBetweenPlates<<endl;
 				//calculates fds gray median only if 5 seconds have passed without any detected plate
 				if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!fdsMedianFirstUse))
 				{
+					cout<<"calculating fds median"<<endl;
 					_structAsphaltInfo = FreeDrivingSpaceInfo(srcGray);
-					if(measureTime)
-						timeBetweenPlates=clock();
+					timeBetweenPlates=clock();
 					fdsMedianFirstUse=true;
 				}
 				SearchForShadow(srcGray(myROI),_structAsphaltInfo.median);

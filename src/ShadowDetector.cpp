@@ -276,103 +276,107 @@ void IsolatePlate(Mat input, int x, int y,int hplate, int wplate)
 	
 	input.convertTo(input, CV_32F);
 	int sz[3] = {input.rows,input.cols,3};
-    	Mat xMat;
+    Mat xMat;
 
-	Sobel( input, xMat, CV_32F, 1, 0);
+	int scale = 1;
+	int delta = 0;
+	int ddepth = CV_16S;
+
+  	/// Generate grad_x
+	Mat grad_x;
+	Mat abs_grad_x;
+
+	/// Gradient X
+	Sobel( input, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+	convertScaleAbs( grad_x, xMat );
 
 	Mat xi,xi2;
 	cv::integral(xMat, xi, xi2, CV_64F);
+
 	float mul1=0.7;
 	float mul2=0.35;
-	//for(int change=0;change<100;change++)
-	{
-		
-		int winx_factor=wplate*mul1;
-		int winy_factor=hplate*mul2;
-	//	mul1=mul1+0.02;
-	//	mul2=mul2+0.01;
+	int winx_factor=wplate*mul1;
+	int winy_factor=hplate*mul2;
 
-		if(winy_factor<=0)
-			winy_factor++;
-		if(winx_factor<=0)
-			winx_factor++;
-		
-		//cout<<"winx_factor: "<<winx_factor<<" mul1: "<<mul1<<" winy_factor: "<<winy_factor<<" mul2: "<<mul2<<endl;
-
-		//int winy_size[3] = {winy1,winy2,winy3};
-		//int winx_size[3] = {winx1,winx2,winx3};
-		int winy_size[3] = {winy_factor-1,winy_factor,winy_factor+1};
-		int winx_size[3] = {winy_factor-1,winy_factor,winy_factor+1};
-
-		//cout<<x<<" "<<y<<endl;
-
-
-		int scols = input.cols;
-		int srows = input.rows;
-		
-	    Mat st(3,sz, CV_64FC3, Scalar::all(0));
-	    for(int ind=0;ind<3;ind++)
-	    {
-	    	int winx = winx_size[ind];
-		    int winy = winy_size[ind];
-		    
-		    double Npix = (2*winx+1)*(2*winy+1);
-	    	for(int i=1+winx;i<srows-winy-1;i++)
-	    	{
-	    		for(int j=winy;j<scols-winx-1;j++)
-	    		{
-	    			double ex = 	xi.at<double>(i + winx + 1,j + winy + 1)
-	    						+ 	xi.at<double>(i - winx, j - winy)
-	    						-  	xi.at<double>(i - winx,j + winy + 1)
-	    						-	xi.at<double>(i + winx + 1,j - winy);
-	            	
-	    			double ex2 = 	xi2.at<double>(i + winx + 1,j + winy + 1)
-	    						+ 	xi2.at<double>(i - winx, j - winy)
-	    						-  	xi2.at<double>(i - winx,j + winy + 1)
-	    						-	xi2.at<double>(i + winx + 1,j - winy);
-	    			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
-	    		}
-	    	}
-	    }
-	    Mat ss(srows, scols, CV_32F);
-		for(int i=0;i<srows;i++)
-		{
-			for(int j=0;j<scols;j++)
-			{
-			   	ss.at<float>(i,j) = (st.at<Vec3f>(i,j)[0] + st.at<Vec3f>(i,j)[1] + st.at<Vec3f>(i,j)[2])/3;
-			}
-		}
-		
-		Mat so = ss.clone();
-
-		cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
-
-		//CalcHistogram( so );
-		//cout<<"cols: "<<so.cols<<" rows: "<<so.rows<<" so.rows*0.5: "<<so.rows*0.5<<" so.cols*0.5: "<<so.cols*0.5<<" so.rows*0.9: "<<so.rows*0.9<<" so.cols*0.9: "<<so.cols*0.9<<endl;
-		float T = 0.5*(so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
-		
-		for(int i=0;i<srows;i++){
-			for(int j=0;j<scols;j++)
-			{
-				if(ss.at<float>(i,j)<T)
-					input.at<float>(i,j)=0.;
-				else
-					input.at<float>(i,j)=255.;
-			}
-		}
-		//namedWindow("step",	WINDOW_AUTOSIZE);
-		if(!onRPI)
-		{
-			imshow("BW",input);
-			//waitKey();
-		}
-		
-	}
-	//waitKey();
-	//cout<<"cols: "<<input.cols<<" rows: "<<input.rows<<" z: "<<z<<endl;
+	if(winy_factor<=0)
+		winy_factor++;
+	if(winx_factor<=0)
+		winx_factor++;
 	
-	ConnectedComponents(input, original, original, x, y,hplate,wplate);
+	//
+	//compute the local std using varying window sizes
+	//
+	int winy_size[3] = {winy_factor-1,winy_factor,winy_factor+1};
+	int winx_size[3] = {winy_factor-1,winy_factor,winy_factor+1};
+
+	int scols = input.cols;
+	int srows = input.rows;
+	
+    Mat st(3,sz, CV_64FC3, Scalar::all(0));
+    for(int ind=0;ind<3;ind++)
+    {
+    	int winx = winx_size[ind];
+	    int winy = winy_size[ind];
 	    
+	    double Npix = (2*winx+1)*(2*winy+1);
+    	for(int i=1+winx;i<srows-winy-1;i++)
+    	{
+    		for(int j=winy;j<scols-winx-1;j++)
+    		{
+    			double ex = 	xi.at<double>(i + winx + 1,j + winy + 1)
+    						+ 	xi.at<double>(i - winx, j - winy)
+    						-  	xi.at<double>(i - winx,j + winy + 1)
+    						-	xi.at<double>(i + winx + 1,j - winy);
+            	
+    			double ex2 = 	xi2.at<double>(i + winx + 1,j + winy + 1)
+    						+ 	xi2.at<double>(i - winx, j - winy)
+    						-  	xi2.at<double>(i - winx,j + winy + 1)
+    						-	xi2.at<double>(i + winx + 1,j - winy);
+    			st.at<Vec3f>(i,j)[ind]=sqrt(((Npix*ex2 - ex*ex)/Npix) < 1e-12 ? 0 : (Npix*ex2 - ex*ex)/Npix);
+    		}
+    	}
+    }
+
+    Mat ss(srows, scols, CV_32F);
+    
+    //
+    // Picks the mean of the local std images
+    //
+	for(int i=0;i<srows;i++)
+	{
+		for(int j=0;j<scols;j++)
+		{
+		   	ss.at<float>(i,j) = (st.at<Vec3f>(i,j)[0] + st.at<Vec3f>(i,j)[1] + st.at<Vec3f>(i,j)[2])/3;
+		}
+	}
+	
+	Mat so = ss.clone();
+
+	//
+	// Threshold the mean std images based on a percentile of the distribution
+	//
+	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+
+	//CalcHistogram( so );
+	float T = 0.5*(so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
+	
+	for(int i=0;i<srows;i++){
+		for(int j=0;j<scols;j++)
+		{
+			if(ss.at<float>(i,j)<T)
+				input.at<float>(i,j)=0.;
+			else
+				input.at<float>(i,j)=255.;
+		}
+	}
+
+	if(!onRPI)
+	{
+		//imshow("BW",input);
+		//waitKey();
+	}
+	
+	ConnectedComponents(input, original, original, x, y,hplate,wplate);    
 }
 
 void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
@@ -521,9 +525,9 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		shadow2.x=rightx;
 		shadow2.y=righty;
 		
-		RNG rng(-1);
-		Scalar color=(255,155,255);
-		Mat dim_plate = hole_img.clone();
+		//RNG rng(-1);
+		//Scalar color=(255,155,255);
+		//Mat dim_plate = hole_img.clone();
 		//rectangle( dim_plate, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
 		//imshow("dim_plate",dim_plate);
 		//waitKey();
@@ -550,7 +554,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 
 		//z is the distance between the camera and the car 
         //being evaluated through its position in the image
-        int z = righty; //y + height;
+        //int z = righty; //y + height;
 
 	    IsolatePlate(matImg, leftx, righty, hplate_im, wplate_im);
 	}
