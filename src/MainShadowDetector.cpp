@@ -4,7 +4,7 @@
 
 
 
-ifstream myfile ("carlos_gomes_1410.txt");
+ifstream myfile ("plates.txt");
 
 int main(int argc, char** argv)
 {
@@ -33,8 +33,20 @@ int main(int argc, char** argv)
 	 		if(measureTime)
 	 			t = clock();
 	    	
+	 			if(totalRealPlates==2975)
+				{	
+					falsePositives= totalAlgPlates- MinimunIntersection;
+					falseNegatives= totalRealPlates - MinimunIntersection;
+					cout<<"totalRealPlates: "<<totalRealPlates<<" totalAlgPlates: "<<totalAlgPlates<<" gotHolePlate: "<<gotHolePlate<<" meanMetricError: "<<meanMetricError<<endl;
+					cout<<"falsePositives: "<<falsePositives<<" falseNegatives: "<<falseNegatives<<endl;
+					return 0;
+				}
+
 			//just part of the video can be used because of the reflection in the windshield
-			myROI = cv::Rect(0,0,src.cols, 220);
+			if((frame<2550)&&(frame>frameChangeROI))
+				myROI = cv::Rect(0,0,src.cols, 220);
+			else
+				myROI = cv::Rect(0,0,src.cols, 200);
 	       	stream >> src;
 	       	if(src.empty()) 
 	       	{
@@ -57,7 +69,6 @@ int main(int argc, char** argv)
 			{
 				//convert src to gray scale (srcGray)
 				cvtColor(src,srcGray,CV_BGR2GRAY);
-				cout<<"timeBetweenPlates: "<<timeBetweenPlates<<endl;
 				//calculates fds gray median only if 5 seconds have passed without any detected plate
 				if((((float)(clock()-timeBetweenPlates))/CLOCKS_PER_SEC)>5 ||(!fdsMedianFirstUse))
 				{

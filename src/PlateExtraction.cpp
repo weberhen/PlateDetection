@@ -10,7 +10,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
 	IplImage *im32 = new IplImage(mat);
-	IplImage *img32original = new IplImage(original);
+	IplImage *img32original = new IplImage(sizeOriginal);
 	cvConvertScale(im32, im8, 1);
 
 	IplImage *img8original = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
@@ -27,6 +27,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 	
 	//Rendering the blobs
 	cvRenderBlobs(labelImg,blobs,img32original,dst);
+	  
 	Mat matLabelImg(labelImg);
 	cvFilterByArea(blobs,minPlateArea,maxPlateArea);
 	//cout<<"how many blobs? "<<blobs.size()<<endl;
@@ -124,10 +125,10 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 			//cout<<"stddev"<<stddev_pxl<<endl;
 			if(stddev_pxl>minStdev){
 				timeBetweenPlates=clock();
-		    	if(!onRPI)
+		    	//if(!onRPI)
 		    		imshow("final_plate",plate);
 
-		    	RNG rng(-1);
+		    	/*RNG rng(-1);
 				Scalar color=(255,155,255);
 				Point Pt1,Pt2;
 				Pt2.x=rmax;
@@ -135,11 +136,11 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 				Pt1.x=rmin;
 				Pt1.y=cmin;
 
-				//rectangle( sizeOriginal, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
-
+				rectangle( sizeOriginal, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
+				*/
 		    	//I have to sum with the previews value because it is the x,y relative to the rear of the car, and I will compare with the original image coordinates
 		    	algX = cmin + x;
-				algY = rmax;
+				algY = rmin + (y-sizeOriginal.rows);
 				algWidth = width;
 				algHeight = height;	
 				totalAlgPlates++;
@@ -147,7 +148,12 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 		}
 	    
 	}
-
+	cvReleaseImage(&im8);
+	cvReleaseImage(&img8original);
+	cvReleaseImage(&labelImg);
+	cvReleaseImage(&dst);
+	//cvReleaseImage(&im32); 
+	//cvReleaseImage(&img32original);
 	
 }
 

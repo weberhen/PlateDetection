@@ -120,6 +120,7 @@ float calculateMetric()
 				for(int i=0;i<numberOfPlates;i++)
 				{
 					totalRealPlates++;
+					cout<<"totalRealPlates: "<<totalRealPlates<<endl;
 					getline (myfile,line);
 					std::vector<std::string> coordFile = split(line, ' ');
 					realX = stoi(coordFile[0]);
@@ -129,20 +130,22 @@ float calculateMetric()
 
 					//cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
 					//cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
-					//waitKey();
+									
 					Rect algRect(algX,algY,algWidth,algHeight);
 					Rect realRect(realX,realY,realWidth,realHeight);
 					Rect intersection = algRect & realRect;
-					//cout<<"intersection: "<<intersection.area()<<endl;
-
+					
 					//(A-B)U(B-A)/(AUB)
 					metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)(realRect.area()+algRect.area()-intersection.area());
 					if(intersection.area()>(realRect.area()*0.8))
 					{
 						gotHolePlate++;
 						meanMetricError=((meanMetricError*(float)(gotHolePlate-1)+metric)/gotHolePlate);
-						//cout<<"got "<<gotHolePlate<<endl;
+						cout<<"got "<<gotHolePlate<<endl;
 					}
+					else
+						cout<<"miss"<<endl;
+					cout<<"perc: "<<gotHolePlate*100/totalRealPlates<<endl;
 					/*if((intersection.area()<(realRect.area()*0.85))&&intersection.area()>0)
 					{
 						metric+=10000;
@@ -156,6 +159,10 @@ float calculateMetric()
 					//cout<<"metric gives "<<metric<<endl;
 				}
 		}
+	}
+	else
+	{
+		cout<<"could not open file"<<endl;
 	}
 	return metric;
 }

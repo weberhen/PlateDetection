@@ -8,7 +8,7 @@ bool debugMode= 		false;
 bool manualPlateCapture=false;
 bool measureTime= 		false;
 bool fdsMedianFirstUse=	false;
-bool takeMetrics=		false;
+bool takeMetrics=		true;
 bool onRPI=				false;
 
 clock_t timeBetweenPlates = 0;
@@ -20,6 +20,8 @@ Mat srcGray, src;
 structAsphaltInfo _structAsphaltInfo;
 clock_t t;
 cv::Rect myROI;
+
+Mat original;
 
 //////////////////////////////////////////////////////////////
 //parameters to be set by the user (to reach the best performance)
