@@ -112,7 +112,9 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 		if(height>hplate&&
 		   height<hplate*2.5&&
 		   width >wplate&&
-		   width <wplate*2.5
+		   width <wplate*2.5&&
+		   width>height*2.5&&
+		   width<height*4.5
 		  )
 		{
 			cv::Rect myROI(cmin, rmin, width , height);

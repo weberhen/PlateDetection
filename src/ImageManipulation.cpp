@@ -162,7 +162,7 @@ float calculateMetric()
 	}
 	else
 	{
-		cout<<"could not open file"<<endl;
+		cout<<"could not open file for metric calculation"<<endl;
 	}
 	return metric;
 }
