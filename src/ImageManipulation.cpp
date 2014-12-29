@@ -1,4 +1,5 @@
 #include "ImageManipulation.hpp"
+#include <fstream>
 
 Point NeighborPixel(Point pos, int direction, Mat img)
 {
@@ -104,66 +105,66 @@ std::vector<std::string> split(const std::string &s, char delim) {
     split(s, delim, elems);
     return elems;
 }
-
+int counter=0;
 float calculateMetric()
 {
+	FILE *f = fopen("jaccard_our_video3.txt", "a");
+	cout<<counter++<<endl;
 	float metric=-1;
 	string line;
 	if (myfile.is_open())
 	{
 		if( getline (myfile,line) )
 		{
-				std::vector<std::string> x = split(line, ' ');
-				
-				int numberOfPlates=stoi(x[1]);
-				
-				for(int i=0;i<numberOfPlates;i++)
-				{
-					totalRealPlates++;
-					cout<<"totalRealPlates: "<<totalRealPlates<<endl;
-					getline (myfile,line);
-					std::vector<std::string> coordFile = split(line, ' ');
-					realX = stoi(coordFile[0]);
-					realY = stoi(coordFile[1]);
-					realWidth = stoi(coordFile[2]);
-					realHeight = stoi(coordFile[3]);
+			std::vector<std::string> x = split(line, ' ');
+			
+			int numberOfPlates=stoi(x[1]);
+			vector<float> J;
 
-					//cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
-					//cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
-									
-					Rect algRect(algX,algY,algWidth,algHeight);
-					Rect realRect(realX,realY,realWidth,realHeight);
-					Rect intersection = algRect & realRect;
-					
-					//(A-B)U(B-A)/(AUB)
-					metric = (float)((algRect.area()-intersection.area())+(realRect.area()-intersection.area()))/(float)(realRect.area()+algRect.area()-intersection.area());
-					if(intersection.area()>(realRect.area()*0.8))
-					{
-						gotHolePlate++;
-						meanMetricError=((meanMetricError*(float)(gotHolePlate-1)+metric)/gotHolePlate);
-						cout<<"got "<<gotHolePlate<<endl;
-					}
-					else
-						cout<<"miss"<<endl;
-					cout<<"perc: "<<gotHolePlate*100/totalRealPlates<<endl;
-					/*if((intersection.area()<(realRect.area()*0.85))&&intersection.area()>0)
-					{
-						metric+=10000;
-						cout<<"foi"<<endl;
-					}*/
-						
-					if(intersection.area()>0)
-					{
-						MinimunIntersection++;
-					}
-					//cout<<"metric gives "<<metric<<endl;
+			for(int i=0;i<numberOfPlates;i++)
+			{
+				totalRealPlates++;
+				cout<<"totalRealPlates: "<<totalRealPlates<<endl;
+				getline (myfile,line);
+				std::vector<std::string> coordFile = split(line, ' ');
+				realX = stoi(coordFile[0]);
+				realY = stoi(coordFile[1]);
+				realWidth = stoi(coordFile[2]);
+				realHeight = stoi(coordFile[3]);
+
+				//cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
+				//cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
+								
+				Rect algRect(algX,algY,algWidth,algHeight);
+				Rect realRect(realX,realY,realWidth,realHeight);
+				Rect interAB = algRect & realRect;
+				Rect unionAB = algRect | realRect;
+				//jaccard
+				//|A/\B|
+				//------
+				//|A\/B|
+				J.push_back((float)interAB.area()/unionAB.area());
+				cout<<J.back()<<endl;
+				fprintf(f, "%f\n", J.back());
+				
+
+			}
+			if(numberOfPlates==0){//não havia placas naquele frame
+				if(algWidth!=0){//algoritmo obteve um falso positivo
+					J.push_back(-1);
+					fprintf(f, "%f\n", J.back());
+					cout<<J.back()<<endl;
 				}
+			}
 		}
+		else
+			exit(1);
 	}
 	else
 	{
 		cout<<"could not open file for metric calculation"<<endl;
 	}
+	fclose(f);
 	return metric;
 }
 

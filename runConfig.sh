@@ -22,7 +22,7 @@
 
 #                          1   2   3    4    5  6   7  8  9 10 11 12 13 14 15 16  17    18
 echo "\n././bin/ShadowDetector bento_ipiranga_1410.h264 4000 0.9 0.5 0.65 1.35 20 1.2 15 0 4  2  3  4  2  3  4  1100  10000"
-		./bin/ShadowDetector  /home/hweber/Videos/filmagens_rua/bento_ipiranga_1410.h264 4000 0.9 0.5 0.65 1.35 20 1.2 15 0 4  1  3  4  2  3  4  1100  10000
+		./bin/ShadowDetector  /home/hweber/Videos/filmagens_rua/dados/carlos_gomes_1410.h264 4000 0.9 0.5 0.65 1.35 20 1.2 15 0 4  1  3  4  2  3  4  1100  10000
 		#./bin/ShadowDetector  /media/1E784E3B784E1247/filmagens_rua/bento_ipiranga_1410.h264 4000 0.9 0.5 0.65 1.35 20 1.2 15 0 4  1  3  4  2  3  4  1100  10000
 #                          1   2   3    4    5  6   7  8  9 10 11 12 13 14 15 16  17    18
 #echo "\n./ShadowDetector 4000 0.9 0.5 0.65 1.35 20 1.2 15 0 4  1  2  3  1  2  3  1100  10000"

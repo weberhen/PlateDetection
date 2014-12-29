@@ -4,7 +4,7 @@
 
 
 
-ifstream myfile ("plates.txt");
+ifstream myfile ("/home/hweber/Videos/filmagens_rua/dados/carlos_gomes_1410.txt");
 
 int main(int argc, char** argv)
 {
