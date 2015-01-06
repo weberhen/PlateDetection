@@ -121,6 +121,13 @@ float calculateMetric()
 			int numberOfPlates=stoi(x[1]);
 			vector<float> J;
 
+			Rect algRect(algX,algY,algWidth,algHeight);
+			if(numberOfPlates>0)
+				if(algRect.area()==0)
+				{
+					cout<<"algorithm found nothing"<<endl;
+					waitKey();
+				}
 			for(int i=0;i<numberOfPlates;i++)
 			{
 				totalRealPlates++;
@@ -135,19 +142,19 @@ float calculateMetric()
 				//cout<<"realX: "<<realX<<" realY: "<<realY<<" realWidth: "<<realWidth<<" realHeight: "<<realHeight<<endl;
 				//cout<<"algX: "<<algX<<" algY: "<<algY<<" algWidth: "<<algWidth<<" algHeight: "<<algHeight<<endl;
 								
-				Rect algRect(algX,algY,algWidth,algHeight);
+				
 				Rect realRect(realX,realY,realWidth,realHeight);
 				Rect interAB = algRect & realRect;
 				Rect unionAB = algRect | realRect;
+				
 				//jaccard
 				//|A/\B|
 				//------
 				//|A\/B|
+				cout<<algRect<<endl;
 				J.push_back((float)interAB.area()/unionAB.area());
 				cout<<J.back()<<endl;
 				fprintf(f, "%f\n", J.back());
-				
-
 			}
 			if(numberOfPlates==0){//não havia placas naquele frame
 				if(algWidth!=0){//algoritmo obteve um falso positivo
@@ -155,7 +162,10 @@ float calculateMetric()
 					fprintf(f, "%f\n", J.back());
 					cout<<J.back()<<endl;
 				}
+		    	
+
 			}
+
 		}
 		else
 			exit(1);

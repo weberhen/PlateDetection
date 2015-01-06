@@ -372,8 +372,7 @@ void IsolatePlate(Mat input, int x, int y,int hplate, int wplate)
 
 	if(!onRPI)
 	{
-		//imshow("BW",input);
-		//waitKey();
+		imshow("BW",input);
 	}
 	
 	ConnectedComponents(input, original, original, x, y,hplate,wplate);    
@@ -524,14 +523,6 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		shadow1.y=righty;
 		shadow2.x=rightx;
 		shadow2.y=righty;
-		
-		//RNG rng(-1);
-		//Scalar color=(255,155,255);
-		//Mat dim_plate = hole_img.clone();
-		//rectangle( dim_plate, Pt1, Pt2, color, rng.uniform(1,1), CV_AA );
-		//imshow("dim_plate",dim_plate);
-		//waitKey();
-		//line(hole_img,shadow1,shadow2,color,rng.uniform(1,1),CV_AA);
 
 		int x = leftx;
 		
@@ -545,16 +536,7 @@ void CreateROIOfShadow(vector<Vec4i> lines, Mat hole_img, float reductionFactor)
 		int hplate_im=ubr-utl;
 		int wplate_im=vbr-vtl;
 
-		//cout<<x<<" "<<y<<" "<<width<<" "<<height<<" "<<hbase_min<<" "<<hbase_max<<endl;
-		//cout<<hole_img.rows<<" "<<hole_img.cols<<endl;
-		//waitKey();
 		Mat matImg = hole_img(myROI);
-
-		//imshow("step",matImg);
-
-		//z is the distance between the camera and the car 
-        //being evaluated through its position in the image
-        //int z = righty; //y + height;
 
 	    IsolatePlate(matImg, leftx, righty, hplate_im, wplate_im);
 	}
@@ -577,36 +559,12 @@ void SearchForShadow(Mat src,int uBoundary)
 
 	smallerImg = ExludeFalseShadowPixels(smallerImg, smallSize);
 	vector<Vec4i> lines = mergeLines(smallerImg);
+	imshow("smallerImg",smallerImg);
 	lines = excludeDuplicateShadows(lines);
 	CreateROIOfShadow(lines, bigImg, reductionFactor);
 	//waitKey();
 
 }
-
-/*
- * \param smallerImg 
- * \param row row of the pixel
- * \param col col of the pixel
- * calculates the size of the car (horizontal) based on the size of the shadow
- * \return the size of the car
- */
-int SizeOfCar(Mat *img, int row, int col)
-{
-	int _sizeOfCar=0;
-	int pixel =			(*img).at<unsigned char>(row+1, col);
-	int pixelAbove = 	(*img).at<unsigned char>(row+1, col);
-	int pixelBelow = 	(*img).at<unsigned char>(row-1, col);
-	while(((pixel!=0)||(pixelAbove!=0)||(pixelBelow!=0))&&(col>=0))
-	{
-		(*img).at<unsigned char>(row+1, col)=0;
-		(*img).at<unsigned char>(row, col)=125;
-		(*img).at<unsigned char>(row-1, col)=0;
-		_sizeOfCar++;
-		col--;
-	}
-	return _sizeOfCar;
-}
-
 /*
  * \param dst the image where the pixel is
  * \param i the row of the pixel
