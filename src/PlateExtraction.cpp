@@ -7,6 +7,12 @@ using namespace std;
 
 void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, int y, int hplate, int wplate)
 {
+	Mat mat8u;
+	mat.convertTo(mat8u,CV_8U);
+	Mat blank;
+	threshold( mat8u, blank, 1, 1,0 );
+	imshow("mix",original.mul(blank));
+	
 	IplImage *im8 = cvCreateImage(cvSize(mat.cols, mat.rows), 8, 1);
 	IplImage *im32 = new IplImage(mat);
 	IplImage *img32original = new IplImage(sizeOriginal);
@@ -107,7 +113,13 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 
 	    int width = cmax - cmin;
 		int height = rmax - rmin;
+			cv::Rect myROI(cmin, rmin, width , height);
+			Mat plate = sizeOriginal(myROI);
+		if(width>0&&height>0){
 		
+			imshow("candidate_plate",plate);
+		}
+
 		if(height>hplate&&
 		   height<hplate*2.5&&
 		   width >wplate&&
@@ -116,8 +128,7 @@ void ConnectedComponents(const Mat mat, Mat original,Mat sizeOriginal, int x, in
 		   width<height*4.5
 		  )
 		{
-			cv::Rect myROI(cmin, rmin, width , height);
-		    Mat plate = sizeOriginal(myROI);
+
 		    Scalar stddev;
 			Scalar mean;
 			//getting the stdev of the patch

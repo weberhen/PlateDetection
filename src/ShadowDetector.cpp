@@ -358,7 +358,7 @@ void IsolatePlate(Mat input, int x, int y,int hplate, int wplate)
 	cv::sort(so, so, CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
 
 	//CalcHistogram( so );
-	float T = 0.5*(so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
+	float T = (so.at<float>(so.rows*median,so.cols*median)+(so.at<float>(so.rows*percentil,so.cols*percentil)));
 	
 	for(int i=0;i<srows;i++){
 		for(int j=0;j<scols;j++)
